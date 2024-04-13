@@ -1,7 +1,13 @@
+#include <Servo.h>
 #define VALUE_LENGTH 6
+#define MOTOR_COUNT 6
+
+int servo_pins[MOTOR_COUNT] = {3, 5, 6, 9, 10, 11};
+
+Servo servo[MOTOR_COUNT];
 
 // characters read from serial port
-char buffer[64];
+unsigned char buffer[64];
 int read_bytes = 0;
 
 // integers read from port
@@ -12,6 +18,10 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(20);
 
+  for (int i = 0; i < MOTOR_COUNT; ++i) {
+    servo[i].attach(servo_pins[i]);
+  }
+  
   Serial.println("Begin.");
 }
 
@@ -39,6 +49,7 @@ void handleSerial() {
   // when we've read all 6 values, reset back to start
   if (read_values >= VALUE_LENGTH) {
     print_values();
+    set_motors();
     read_values = 0;
   }
 }
@@ -49,18 +60,24 @@ void parse_int() {
   int ans = buffer[0];
 
   int offset = 8;
-
+  
   // iterate through rest of bytes
   for (int i = 1; i < 4; ++i) {
       // shift them over to right order of magnitude
-      int c = buffer[i] << offset;
-      ans += c;
+      int c = buffer[i];
+      ans += c << offset;
 
       // the next byte will be another 8 bits to the left
       offset += 8;
   }
-
+  
   values[read_values++] = ans;
+}
+
+void set_motors() {
+  for (int i = 0; i < MOTOR_COUNT; ++i) {
+    servo[i].writeMicroseconds(values[i]);
+  }
 }
 
 void print_values() {
