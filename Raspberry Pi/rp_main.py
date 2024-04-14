@@ -1,78 +1,242 @@
-import pygame
-import serial
+import socket
+import threading
+import json
 import time
-import keyboard
 
-# Set the serial port names for your Arduinos
-arduino1_port = 'COM3'  # Replace with the correct port for Arduino 1
-baudrate = 19200
-timeout = 0.02
-deadzone = .075
-
-# Initialize serial communication
-arduino1 = serial.Serial(arduino1_port, baudrate, timeout=timeout)
-
-# Initialize pygame
-pygame.init()
+import arduino_communicator
 
 
-joy_count = pygame.joystick.get_count()
-while not joy_count:
-    print("No controller detected.")
+class SocketHandler:
+    """Class for handling socket communication with the Raspberry Pi.
 
-# Set up the Xbox controller
-controller = pygame.joystick.Joystick(0)
-controller.init()
+    Methods:
+        start_listening:
+            Start listening for data from the topside PC.
+        get_controller_commands:
+            Get the controller commands.
+        set_sensor_data:
+            Set the sensor data.
+    """
+    def __init__(self, port: int = 5600, buffer_size: int = 1024) -> None:
+        """Initialize the SocketHandler object.
 
-# Set up the keyboard
-pygame.key.set_repeat(1, 1)  # Enable key repeat with a delay of 1 ms and a repeat rate of 1 ms
-keys = pygame.key.get_pressed()
+        Args:
+            port (int, optional):
+                The port number to connect to.
+                Defaults to 5600.
+            buffer_size (int, optional):
+                The size of the reception buffer.
+                Defaults to 1024.
+        """
+        self._port: int = port
+        self._buffer_size: int = buffer_size
 
-try:
+        self._commands_lock: threading.Lock = threading.Lock()
+        self._sensors_lock: threading.Lock = threading.Lock()
+
+        self._controller_commands: dict | None = None
+        self._controller_commands_available: bool = False
+
+        self._client_socket: socket.socket | None = None
+
+        # self._sensor_data: dict[str, list] = {
+        #     "response": "",
+        #     "clock_ms": [time.time_ns() / 1_000_000],
+        #     "sensor1": [0],
+        #     "sensor2": [5],
+        #     "sensor3": [32],
+        # }
+        self._sensor_data: dict[str, list] | None = None
+        self._sensor_data_available: bool = False
+
+        self._data_to_send: dict | None = None
+
+    def get_controller_commands(self) -> dict:
+        """Get the controller commands.
+
+        Format:
+        {
+            "commands": ["command1", "command2"],
+            "pwm_values": [0, 0, 0, 0, 0, 0]
+        }
+        """
+        with self._commands_lock:
+            commands = self._controller_commands
+
+            self._controller_commands = None
+            self._controller_commands_available = False
+
+            return commands
+
+    def set_sensor_data(self, data: dict) -> None:
+        """Set the sensor data.
+
+        Format:
+        {
+            "response": "",
+            "clock_ms": [time.time_ns() / 1_000_000],
+            "sensor1": [0],
+            "sensor2": [0],
+            "sensor3": [0],
+            ...
+        }
+        """
+        with self._sensors_lock:
+            self._sensor_data = data
+            self._sensor_data_available = True
+
+    def start_listening(self) -> None:
+        """Start listening for data from the topside PC."""
+        self._listen_for_data()
+
+    def close(self) -> None:
+        """Close the socket connection."""
+        self._client_socket.shutdown(socket.SHUT_RDWR)
+        self._client_socket.close()
+
+    def _receive_data(self) -> dict:
+        # Receive data from the socket and decode it.
+        command_bytes: bytes = self._client_socket.recv(self._buffer_size)
+
+        data = json.loads(command_bytes.decode())
+        print("Data" + str(data))
+
+        return data
+
+    def _listen_for_data(self) -> None:
+        """Listen for data from the topside PC on loop and leave the data in a buffer for the main loop to pick up."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+
+            host: str = "0.0.0.0"
+
+            while True:
+                # Wait for a connection.
+                server_socket.bind((host, self._port))
+                server_socket.listen()
+                print(f"Server listening on {host}:{self._port}")
+
+                # Accept the connection.
+                client_socket, client_address = server_socket.accept()
+                print(f"Accepted connection from {client_address}")
+
+                # Store the client socket.
+                self._client_socket = client_socket
+
+                try:
+                    while True:
+                        # Receive data from the socket.
+                        controller_commands: dict = self._receive_data()
+
+                        # Store the commands.
+                        with self._commands_lock:
+                            self._controller_commands = controller_commands
+                            self._controller_commands_available = True
+
+                        # Get sensor data to upload.
+                        with self._sensors_lock:
+                            self._data_to_send |= self._sensor_data
+                        self._data_to_send["clock_ms"] = [time.time_ns() / 1_000_000]
+
+                        # Send the data.
+                        print("sending" + str(self._data_to_send))
+                        self._send_data(self._data_to_send)
+                        print("Sent!")
+
+                except (ConnectionResetError, OSError):
+                    print("Inbound connection reset. Reconnecting...")
+
+    def _send_data(self, data: dict) -> None:
+        """Encode and send data to the Raspberry Pi.
+
+        Args:
+            data (dict):
+                The data to send to the Raspberry Pi.
+        """
+        try:
+            # Create and send the packet.
+            encoded_data: bytes = json.dumps(data).encode()
+            self._client_socket.sendall(encoded_data)
+
+            # Wait for the response.
+            response: bytes = self._client_socket.recv(self._buffer_size)
+            print(f"Received response: {json.loads(response.decode())}")
+
+        except ConnectionResetError:
+            print("Outbound connection reset. Reconnecting...")
+
+
+class PiLoop:
+    """Main system class for the Raspberry Pi."""
+    def __init__(self):
+        self.socket_handler = SocketHandler()
+        self.arduino = arduino_communicator.Arduino()
+
+        # Initialize the data dictionaries.
+        self.sensor_data = {
+            "response": "",
+            "clock_ms": [time.time_ns() / 1_000_000],
+            "sensor1": [0],
+            "sensor2": [0],
+            "sensor3": [0],
+        }
+
+        self.controller_data: dict | None = None
+
+        # Boot up the Arduino and start the socket handler.
+        self.arduino.setup()
+        threading.Thread(target=self.socket_handler.start_listening).start()
+
+    def loop(self):
+        """Main loop for the Raspberry Pi."""
+        # Get controller inputs.
+        self.controller_data = self.socket_handler.get_controller_commands()
+
+        # Only continue if there is controller data.
+        if self.controller_data:
+            print("Controller data" + str(self.controller_data))
+
+            # Handle the controller data.
+            self.handle_controller_data(self.controller_data)
+
+        else:
+            print("No controller data")
+
+        # Get sensor data.
+        self.get_sensor_data()
+
+        # Hand the data over to the socket handler.
+        self.socket_handler.set_sensor_data(self.sensor_data)
+
+    def get_sensor_data(self):
+        self.sensor_data["clock_ms"] = [time.time_ns() / 1_000_000]
+        self.sensor_data["sensor1"] = [self.sensor_data["sensor1"][0] + 1]
+        self.sensor_data["sensor2"] = [self.sensor_data["sensor2"][0] + 2]
+        self.sensor_data["sensor3"] = [self.sensor_data["sensor3"][0] + 3]
+
+    def handle_controller_data(self, data: dict) -> str:
+        """Handle the controller data.
+
+        Args:
+            data (dict):
+                The controller data to handle.
+        """
+        self.arduino.send_pwm(data["pwm_values"])
+
+        command_dict = {
+            "quit": self.quit,
+        }
+
+        return self.arduino.get_message()
+
+    def quit(self):
+        """Quit the program."""
+        self.arduino.close()
+        self.socket_handler.close()
+        exit(0)
+
+
+if __name__ == "__main__":
+    pi_loop = PiLoop()
+    # socket_handler.start_listening()
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-
-        values = [0, 0, 0, 0, 0, 0]
-
-        # Get keyboard input
-        if keyboard.is_pressed("w"):
-            values[0] = 255
-        if keyboard.is_pressed("s"):
-            values[1] = 255
-        if keyboard.is_pressed("a"):
-            values[2] = 255
-        if keyboard.is_pressed("d"):
-            values[3] = 255
-        if keyboard.is_pressed("up"):
-            values[4] = 255
-        if keyboard.is_pressed("down"):
-            values[5] = 255
-        # forward_backward_value = int((keys[pygame.K_w] - keys[pygame.K_s]) * 255)
-        # up_down_value = int((keys[pygame.K_UP] - keys[pygame.K_DOWN]) * 255)
-        # pivot_value = int((keys[pygame.K_d] - keys[pygame.K_a]) * 255)
-
-        # Scale values to fit within the range -255 to 255 (Arduino motor control range)
-        up_down_value = max(-255, min(255, up_down_value))
-        forward_backward_value = max(-255, min(255, forward_backward_value))
-        pivot_value = max(-255, min(255, pivot_value))
-
-        # Send commands via serial to Arduinos
-        print("Read: ", arduino1.readline()[0:-2])
-        # arduino1.write(up_down_value.to_bytes())
-        # arduino1.write(forward_backward_value.to_bytes())
-        # arduino1.write(pivot_value.to_bytes())
-        # arduino1.write(300.to_bytes())
-        arduino1.write(f'{up_down_value} {forward_backward_value} {pivot_value}'.encode())
-        # print(f'{up_down_value} {forward_backward_value} {pivot_value}'.encode())
-        print(f'{up_down_value} {forward_backward_value} {pivot_value}'.encode())
-
-        # Add a delay to control the update rate (adjust as needed)
-        time.sleep(0.02)
-
-except KeyboardInterrupt:
-    print("Program terminated by user.")
-    arduino1.close()
-    pygame.quit()
+        pi_loop.loop()
