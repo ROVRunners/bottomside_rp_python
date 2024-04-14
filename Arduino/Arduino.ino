@@ -1,17 +1,27 @@
-#define VALUE_LENGTH 6
+#include <Servo.h>
+#define DATA_RECV_LENGTH 6
+#define MOTOR_COUNT 6
+
+int servo_pins[MOTOR_COUNT] = {3, 5, 6, 9, 10, 11};
+
+Servo servo[MOTOR_COUNT];
 
 // characters read from serial port
-char buffer[64];
-int read_bytes = 0;
+unsigned char buffer[64];
+int bytes_consumed = 0;
 
 // integers read from port
-int values[VALUE_LENGTH];
-int read_values = 0;
+int data_recv[DATA_RECV_LENGTH];
+int data_recv_consumed = 0;
 
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(20);
 
+  for (int i = 0; i < MOTOR_COUNT; ++i) {
+    servo[i].attach(servo_pins[i]);
+  }
+  
   Serial.println("Begin.");
 }
 
@@ -28,18 +38,19 @@ void handleSerial() {
   int c = Serial.read();
 
   // add it to the buffer
-  buffer[read_bytes++] = c;
+  buffer[bytes_consumed++] = c;
 
   // every time 4 bytes are read, parse an integer
-  if (read_bytes >= 4) {
+  if (bytes_consumed >= 4) {
     parse_int();
-    read_bytes = 0;
+    bytes_consumed = 0;
   }
 
   // when we've read all 6 values, reset back to start
-  if (read_values >= VALUE_LENGTH) {
-    print_values();
-    read_values = 0;
+  if (data_recv_consumed >= DATA_RECV_LENGTH) {
+    print_data_recv();
+    set_motors();
+    data_recv_consumed = 0;
   }
 }
 
@@ -49,25 +60,30 @@ void parse_int() {
   int ans = buffer[0];
 
   int offset = 8;
-
+  
   // iterate through rest of bytes
   for (int i = 1; i < 4; ++i) {
       // shift them over to right order of magnitude
-      int c = buffer[i] << offset;
-      ans += c;
+      int c = buffer[i];
+      ans += c << offset;
 
       // the next byte will be another 8 bits to the left
       offset += 8;
   }
-
-  values[read_values++] = ans;
+  
+  data_recv_consumed[data_recv_consumed++] = ans;
 }
 
-void print_values() {
-  for (int i = 0; i < VALUE_LENGTH; ++i) {
-    Serial.print(values[i]);
+void set_motors() {
+  for (int i = 0; i < MOTOR_COUNT; ++i) {
+    servo[i].writeMicroseconds(data_recv_consumed[i]);
+  }
+}
+
+void print_data_recv() {
+  for (int i = 0; i < DATA_RECV_LENGTH; ++i) {
+    Serial.print(data_recv_consumed[i]);
     Serial.print(";");
   }
   Serial.println("");
-  read_values = 0;
 }
