@@ -97,6 +97,8 @@ class SocketHandler:
     def _receive_data(self) -> dict:
         # Receive data from the socket and decode it.
         command_bytes: bytes = self._client_socket.recv(self._buffer_size)
+        
+        print(command_bytes)
 
         data = json.loads(command_bytes.decode())
         print("Data" + str(data))
@@ -124,6 +126,8 @@ class SocketHandler:
 
                 try:
                     while True:
+                        self._data_to_send = {}
+
                         # Receive data from the socket.
                         controller_commands: dict = self._receive_data()
 
@@ -134,7 +138,8 @@ class SocketHandler:
 
                         # Get sensor data to upload.
                         with self._sensors_lock:
-                            self._data_to_send |= self._sensor_data
+                            if self._sensor_data_available:
+                                self._data_to_send |= self._sensor_data
                         self._data_to_send["clock_ms"] = [time.time_ns() / 1_000_000]
 
                         # Send the data.
@@ -158,8 +163,8 @@ class SocketHandler:
             self._client_socket.sendall(encoded_data)
 
             # Wait for the response.
-            response: bytes = self._client_socket.recv(self._buffer_size)
-            print(f"Received response: {json.loads(response.decode())}")
+            #response: bytes = self._client_socket.recv(self._buffer_size)
+            #print(f"Received response: {json.loads(response.decode())}")
 
         except ConnectionResetError:
             print("Outbound connection reset. Reconnecting...")
@@ -199,7 +204,8 @@ class PiLoop:
             self.handle_controller_data(self.controller_data)
 
         else:
-            print("No controller data")
+            # print("No controller data")
+            pass
 
         # Get sensor data.
         self.get_sensor_data()
