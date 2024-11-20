@@ -1,9 +1,14 @@
+from typing import Callable
+
+
 class Spike:
     """Main class for the Spike ROV."""
 
-    def __init__(self) -> None:
+    def __init__(self, input_map: dict[str, Callable]) -> None:
         """Initialize an instance of the class."""
         self.run = True
+
+        self._input_map = input_map
 
     def loop(self):
         pass

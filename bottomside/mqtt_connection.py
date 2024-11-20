@@ -3,7 +3,7 @@ from threading import Lock
 import paho.mqtt.client as mqtt
 
 
-class SurfaceConnection:
+class MQTTConnection:
     def __init__(self, ip: str = "localhost", port: int = 1883, client_id: str = "ROV") -> None:
         """Initialize the SurfaceConnection object.
 
@@ -82,30 +82,23 @@ class SurfaceConnection:
             other (dict[str, str | float]):
                 Other data to send to the surface, such as error/success codes.
         """
-        self._client.publish("ROV_sensor_data", json.dumps(sensor_data))
-        self._client.publish("ROV_status", json.dumps(status))
-        self._client.publish("ROV_other", json.dumps(other))
+        self._client.publish("ROV/sensor_data", json.dumps(sensor_data))
+        self._client.publish("ROV/status", json.dumps(status))
+        self._client.publish("ROV/other", json.dumps(other))
 
     def _on_message(self, client, userdata, message):
         print(f"Received message '{message.payload.decode()}' on topic '{message.topic}'")
 
-        if message.topic == "subscribe":
+        if message.topic == "PC/commands/subscribe":
             self.subscribe(message.payload.decode())
         else:
-            self.set_subscription_value(message.topic, int(message.payload.decode()))
+            self.set_subscription_value(message.topic, message.payload.decode())
 
     def _on_connect(self, client, userdata, flags, rc):
         print(f"Connected with result code {rc}")
 
-        client.subscribe("subscribe")
-        client.subscribe("thruster_pwm/FRONT_RIGHT")
-        client.subscribe("thruster_pwm/REAR_RIGHT")
-        client.subscribe("thruster_pwm/FRONT_LEFT")
-        client.subscribe("thruster_pwm/REAR_LEFT")
-        client.subscribe("thruster_pwm/FRONT_RIGHT_VERTICAL")
-        client.subscribe("thruster_pwm/REAR_RIGHT_VERTICAL")
-        client.subscribe("thruster_pwm/FRONT_LEFT_VERTICAL")
-        client.subscribe("thruster_pwm/REAR_LEFT_VERTICAL")
+        client.subscribe("PC/commands/#")
+        client.subscribe(f"PC/thruster_pwm/#")
 
     def _on_disconnect(self, client, userdata, rc):
         print(f"Disconnected with result code {rc}")
@@ -122,5 +115,5 @@ class SurfaceConnection:
 
 
 if __name__ == "__main__":
-    connection = SurfaceConnection()
+    connection = MQTTConnection()
     connection.connect()

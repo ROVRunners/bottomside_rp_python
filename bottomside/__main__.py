@@ -1,4 +1,4 @@
-import bottomside.rov as rov
+import bottomside.main_system as rov
 
 if __name__ == '__main__':
     # Set to True to close the program when Spike exits without an error through modifying Spike.run.
