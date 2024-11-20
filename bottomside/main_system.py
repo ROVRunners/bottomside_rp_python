@@ -6,9 +6,16 @@ import bottomside.motors as motors
 import bottomside.mqtt_connection as mqtt_connection
 
 
-class ROV:
-    def __init__(self):
-        """Initialize an instance of the class."""
+class MainSystem:
+    def __init__(self, platform: str) -> None:
+        """Initialize an instance of the class.
+
+        Args:
+            platform (str):
+                The platform that the ROV is running on. This is usually either 'Windows' or 'Linux'. Used to determine
+                whether to use the GPIO pins or the GPIOZero library.
+        """
+        self.platform = platform
 
         # Variable to control whether the main loop of the ROV continues running.
         self.run = True

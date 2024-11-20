@@ -1,11 +1,10 @@
-import bottomside.main_system as rov
+import platform
+
+import bottomside.main_system as main_system
 
 if __name__ == '__main__':
-    # Set to True to close the program when the ROV exits without an error through modifying ROV.run.
-    intentionally_shut_down = False
-
-    # Create an instance of the ROV class.
-    main_system = rov.ROV()
+    # Create an instance of the MainSystem class.
+    main_system = main_system.MainSystem(platform.system())
 
     while main_system.run:
         try:
@@ -14,4 +13,3 @@ if __name__ == '__main__':
         except KeyboardInterrupt as e:
             print(f'Exception in main_system.main_loop():\n{e}')
             main_system.shutdown()
-            intentionally_shut_down = True
