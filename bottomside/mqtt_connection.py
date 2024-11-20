@@ -37,7 +37,7 @@ class MQTTConnection:
 
     def connect(self):
         self._client.connect(self._ip, self._port)
-        self._client.loop_start()
+        self.start_listening()
 
     def subscribe(self, topic: str) -> None:
         """Subscribe to the specified topic.
@@ -109,9 +109,24 @@ class MQTTConnection:
     def _on_subscribe(self, client, userdata, mid, granted_qos):
         print(f"Subscribed to topic with mid {mid} and QoS {granted_qos}")
 
-    def disconnect(self):
+    def stop_listening(self) -> None:
+        """Stop listening for messages from the MQTT broker."""
         self._client.loop_stop()
+
+        print("Stopped listening for messages.")
+
+    def start_listening(self) -> None:
+        """Start listening for messages from the MQTT broker."""
+        self._client.loop_start()
+
+        print("Started listening for messages.")
+
+    def disconnect(self):
+        """Disconnect from the MQTT broker."""
+        self.stop_listening()
         self._client.disconnect()
+
+        print("Disconnected from MQTT broker.")
 
 
 if __name__ == "__main__":

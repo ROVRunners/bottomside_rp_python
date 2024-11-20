@@ -42,3 +42,8 @@ class ROV:
             time.sleep(sleep_time)
             # print(sleep_time)
         pass
+
+    def shutdown(self):
+        """Shut down the ROV gracefully."""
+        self.run = False
+        self.mqtt_connection.disconnect()

@@ -1,19 +1,17 @@
 import bottomside.main_system as rov
 
 if __name__ == '__main__':
-    # Set to True to close the program when Spike exits without an error through modifying Spike.run.
+    # Set to True to close the program when the ROV exits without an error through modifying ROV.run.
     intentionally_shut_down = False
 
-    while not intentionally_shut_down:
+    # Create an instance of the ROV class.
+    main_system = rov.ROV()
+
+    while main_system.run:
         try:
-            # Create an instance of the Spike class.
-            main_system = rov.ROV()
+            main_system.loop()
 
-            # Loop until Spike.run is set to False, then close the program.
-            while main_system.run:
-                main_system.loop()
-
-            intentionally_shut_down = True
-
-        except Exception as e:
+        except KeyboardInterrupt as e:
             print(f'Exception in main_system.main_loop():\n{e}')
+            main_system.shutdown()
+            intentionally_shut_down = True
