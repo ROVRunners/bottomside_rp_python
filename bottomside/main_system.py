@@ -13,7 +13,7 @@ class MainSystem:
         Args:
             platform (str):
                 The platform that the ROV is running on. This is usually either 'Windows' or 'Linux'. Used to determine
-                whether to use the GPIO pins or the GPIOZero library.
+                whether to use the GPIO pins or not for debugging purposes.
         """
         self.platform = platform
 
