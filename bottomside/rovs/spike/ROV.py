@@ -1,7 +1,7 @@
 from typing import Callable
 
 
-class Spike:
+class ROV:
     """Main class for the Spike ROV."""
 
     def __init__(self, input_map: dict[str, Callable]) -> None:

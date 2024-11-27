@@ -26,12 +26,14 @@ class MQTTConnection:
 
         self._client = mqtt.Client(client_id=client_id)
 
+        # Set the callback functions.
         self._client.on_connect = self._on_connect
         self._client.on_message = self._on_message
         self._client.on_disconnect = self._on_disconnect
         self._client.on_publish = self._on_publish
         self._client.on_subscribe = self._on_subscribe
 
+        # Set up a locked subscription dictionary.
         self._subscription_lock = Lock()
         self._subscriptions: dict[str, str | float] = {}
 
@@ -94,19 +96,19 @@ class MQTTConnection:
         else:
             self.set_subscription_value(message.topic, message.payload.decode())
 
-    def _on_connect(self, client, userdata, flags, rc):
+    def _on_connect(self, client, userdata, flags, rc) -> None:
         print(f"Connected with result code {rc}")
 
         client.subscribe("PC/commands/#")
         client.subscribe(f"PC/thruster_pwm/#")
 
-    def _on_disconnect(self, client, userdata, rc):
+    def _on_disconnect(self, client, userdata, rc) -> None:
         print(f"Disconnected with result code {rc}")
 
-    def _on_publish(self, client, userdata, mid):
+    def _on_publish(self, client, userdata, mid) -> None:
         print(f"Published message with mid {mid}")
 
-    def _on_subscribe(self, client, userdata, mid, granted_qos):
+    def _on_subscribe(self, client, userdata, mid, granted_qos) -> None:
         print(f"Subscribed to topic with mid {mid} and QoS {granted_qos}")
 
     def stop_listening(self) -> None:
@@ -121,7 +123,7 @@ class MQTTConnection:
 
         print("Started listening for messages.")
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
         self.stop_listening()
         self._client.disconnect()

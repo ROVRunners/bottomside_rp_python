@@ -1,8 +1,9 @@
 """"""
+import RPIO.PWM
 
 
-class Motor:
-    """Basic motor pwm handler."""
+class MotorHandler:
+    """Basic motor system pwm handler."""
     def __init__(self, name):
         self.name = name
 
