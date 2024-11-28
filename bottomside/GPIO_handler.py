@@ -189,8 +189,13 @@ class Pin(GPIODevice):
         self._pin = pin
         self._direction = direction
 
-    def setup(self, gpio: pigpio.pi):
-        gpio.set_mode(self._pin, self._direction.value)
+    def setup(self, gpio: pigpio.pi) -> None:
+        try:
+            self.GPIO.set_mode(self._pin, self._direction.value)
+        except pigpio.error:
+            print(f"Error setting up pin {self._pin}! Was the socket connection unsuccessful?")
+            self.GPIO = pigpio.pi()
+            self.GPIO.set_mode(self._pin, self._direction.value)
 
         self.GPIO = gpio
 
@@ -454,6 +459,19 @@ class RGBLED(GPIODevice):
         self._red_led.resume()
         self._green_led.resume()
         self._blue_led.resume()
+
+    def setup(self, gpio: pigpio.pi) -> None:
+        """Set up the RGB LED.
+
+        Args:
+            gpio (pigpio.pi):
+                The pigpio instance to use.
+        """
+        self.GPIO = gpio
+
+        self._red_led.setup(self.GPIO)
+        self._green_led.setup(self.GPIO)
+        self._blue_led.setup(self.GPIO)
 
     @property
     def red(self):
