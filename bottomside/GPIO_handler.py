@@ -6,7 +6,19 @@ import pigpio
 
 # TODO: Break this up into separate files.
 class GPIOHandler:
-    """Class for handling GPIO devices. """
+    """Class for handling GPIO devices.
+
+    Properties:
+        GPIO (pigpio.pi): The pigpio instance used by the GPIOHandler.
+        devices (dict[str, GPIODevice]): The devices in the GPIOHandler.
+
+    Methods:
+        new_device(device: GPIODevice): Add a new device to the GPIOHandler.
+        remove_device(device: GPIODevice): Remove a device from the GPIOHandler.
+        get_device(name: str): Get a device from the GPIOHandler.
+        get_devices(): Get all devices in the GPIOHandler.
+        cleanup(): Clean up the GPIOHandler, turning off all pins and stopping the GPIO instance.
+    """
     def __init__(self, gpio: pigpio.pi = pigpio.pi()) -> None:
         """Class for handling GPIO devices.
 
@@ -67,13 +79,29 @@ class GPIOHandler:
 
 
 class PinDirs(Enum):
-    """Enum for pin directions. IN for input/reading, OUT for output/writing."""
+    """Enum for pin directions. IN for input/reading, OUT for output/writing.
+
+    Properties:
+        IN (int): The input direction.
+        OUT (int): The output direction.
+    """
     IN = 0
     OUT = 1
 
 
 class Colors(Enum):
-    """Enum for common colors."""
+    """Enum for common colors.
+
+    Properties:
+        RED (tuple[int, int, int]): The color red.
+        GREEN (tuple[int, int, int]): The color green.
+        BLUE (tuple[int, int, int]): The color blue.
+        YELLOW (tuple[int, int, int]): The color yellow.
+        CYAN (tuple[int, int, int]): The color cyan.
+        MAGENTA (tuple[int, int, int]): The color magenta.
+        WHITE (tuple[int, int, int]): The color white.
+        BLACK (tuple[int, int, int]): The color black.
+    """
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
@@ -103,6 +131,11 @@ class Colors(Enum):
 
 
 class GPIODevice:
+    """Class for a GPIO device.
+
+    Properties:
+        name (str): The name of the GPIO device.
+    """
     def __init__(self, name: str, gpio: pigpio.pi = None) -> None:
         """Class for a GPIO device.
 
@@ -128,6 +161,15 @@ class GPIODevice:
 
 
 class Pin(GPIODevice):
+    """Class for a GPIO pin.
+
+    Properties:
+        pin (int): The pin number.
+        direction (PinDirs): The direction of the pin.
+
+    Methods:
+        setup(gpio: pigpio.pi): Set up the pin.
+    """
     def __init__(self, name: str, pin: int, gpio: pigpio.pi = None, direction: PinDirs = PinDirs.OUT) -> None:
         """Class for a GPIO pin.
 
@@ -162,6 +204,18 @@ class Pin(GPIODevice):
 
 
 class LED(Pin):
+    """Class for controlling an LED.
+
+    Properties:
+        value (bool): The state of the LED.
+
+    Methods:
+        on(): Turn the LED on.
+        off(): Turn the LED off.
+        toggle(): Toggle the LED's state on or off.
+        get(): Get the LED's state.
+        set(value: bool): Set the LED's state.
+    """
     def __init__(self, pin: int, name: str, gpio: pigpio.pi = pigpio.pi()) -> None:
         """Class for controlling an LED.
         
@@ -218,6 +272,17 @@ class LED(Pin):
 
 
 class Button(Pin):
+    """Class for a button.
+
+    Properties:
+        value (int): The state of the button.
+
+    Methods:
+        get(): Get the button's state.
+        wait_for_press(): Wait for the button to be pressed.
+        wait_for_release(): Wait for the button to be released.
+        wait_for_change(): Wait for the button to change state.
+    """
     def __init__(self, pin: int, name: str, gpio: pigpio.pi = None) -> None:
         """Class for a button.
 
@@ -256,7 +321,31 @@ class Button(Pin):
 
 
 class PWMLED(Pin):
+    """Class for controlling a PWM LED.
+
+    Properties:
+        value (int): The PWM value of the LED.
+
+    Methods:
+        resume(): Resume the PWM signal of the LED. The LED will resume with the last set PWM value if it was paused.
+        pause(): Pause the PWM signal of the LED. The LED will hold the last set PWM value until resumed.
+        off(): Turn the PWM signal off.
+        set(value: int): Set the PWM duty cycle value of the LED.
+        get(): Get the PWM value of the
+    """
+
     def __init__(self, pin: int, name: str, gpio: pigpio.pi = None) -> None:
+        """Class for controlling a PWM LED.
+
+        Args:
+            pin (int):
+                The pin the LED is connected to.
+            name (str):
+                The name of the LED.
+            gpio (pigpio.pi, optional):
+                The pigpio instance to use. Only needed for devices that are not to be used with a GPIOHandler.
+                Defaults to None.
+        """
         super().__init__(name, pin, gpio, PinDirs.OUT)
 
         self._value: int = 0
@@ -294,7 +383,20 @@ class PWMLED(Pin):
 
 
 class RGBLED(GPIODevice):
-    """Class for controlling an RGB LED."""
+    """Class for controlling an RGB LED.
+
+    Properties:
+        red (int): The red value of the RGB LED.
+        green (int): The green value of the RGB LED.
+        blue (int): The blue value of the RGB LED.
+
+    Methods:
+        set_color(color: tuple[int, int, int] | Colors): Set the color of the RGB LED.
+        get_color(): Get the color of the RGB LED.
+        off(): Turn the RGB LED off.
+        pause(): Pause the RGB LED. The LED will hold the last set color until resumed.
+        resume(): Resume the RGB LED. The LED will resume with the last set color if it was paused.
+    """
     def __init__(self, name: str, red_pin: int, green_pin: int, blue_pin: int, gpio: pigpio.pi = None) -> None:
         """Class for controlling an RGB LED.
 
@@ -379,6 +481,24 @@ class RGBLED(GPIODevice):
 
 
 class Servo(Pin):
+    """Class for controlling a servo.
+
+    Properties:
+        safe_pulsewidth (int): The safe pulse width for the servo.
+        pulsewidth_range (tuple[int, int]): The range of pulse widths the servo can accept.
+        angle_range (tuple[int, int]): The range of angles the servo can rotate to.
+
+    Methods:
+        set_pulsewidth(value: int): Set the pulse width sent to the servo.
+        get_pulsewidth(): Get the pulse width sent to the servo.
+        off(): Turn the PWM signal off.
+        pause(): Pause the servo. The servo will hold the last set pulse width until resumed.
+        resume(): Resume the servo. The servo will resume with the last set pulse width if it was paused.
+        set_angle(angle: int): Set the angle of the servo.
+        get_angle(): Get the angle of the servo.
+        set_safe(): Set the servo to the safe pulse width.
+    """
+
     def __init__(self, pin: int, name: str, gpio: pigpio.pi = None, safe_pulsewidth: int = 1500,
                  pulsewidth_range: tuple[int, int] = (1100, 1900), angle_range: tuple[int, int] = (0, 180)) -> None:
         """Class for controlling a servo.
@@ -525,6 +645,76 @@ def _pulsewidth_to_angle(pulsewidth: int, angle_range: tuple[int, int], pulsewid
     val = int(angle_range[0] + (pulsewidth_normalized * angle_range_diff))
 
     return val
+
+
+class Relay(Pin):
+    """Class for controlling a relay.
+
+    Properties:
+        value (bool): The state of the relay.
+
+    Methods:
+        on(): Turn the relay on.
+        off(): Turn the relay off.
+        toggle(): Toggle the relay's state on or off.
+        get(): Get the relay's state.
+        set(value: bool): Set the relay's state.
+    """
+
+    def __init__(self, pin: int, name: str, gpio: pigpio.pi = None) -> None:
+        """Class for a relay.
+
+        Args:
+            pin (int):
+                The pin the relay is connected to.
+            name (str):
+                The name of the relay.
+            gpio (pigpio.pi, optional):
+                The pigpio instance to use. Only needed for devices that are not to be used with a GPIOHandler.
+                Defaults to None.
+        """
+        super().__init__(name, pin, gpio, PinDirs.OUT)
+
+        self._value: bool = False
+
+    def on(self) -> None:
+        """Turn the relay on."""
+        self._value = True
+        self.GPIO.write(self._pin, self._value)
+
+    def off(self) -> None:
+        """Turn the relay off."""
+        self._value = False
+        self.GPIO.write(self._pin, self._value)
+
+    def toggle(self) -> bool:
+        """Toggle the relay's state on or off.
+
+        Returns:
+            bool: The new state of the relay.
+        """
+        self._value = not self._value
+        self.GPIO.write(self._pin, not self.GPIO.read(self._pin))
+
+        return self._value
+
+    def get(self) -> bool:
+        """Get the relay's state.
+
+        Returns:
+            bool: The state of the relay.
+        """
+        return self._value
+
+    def set(self, value: bool) -> None:
+        """Set the relay's state.
+
+        Args:
+            value (bool):
+                The state to set the relay to.
+        """
+        self._value = value
+        self.GPIO.write(self._pin, value)
 
 
 if __name__ == "__main__":
