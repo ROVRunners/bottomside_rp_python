@@ -1,55 +1,6 @@
 import smbus
 
 
-class I2CHandler:
-
-    def __init__(self, bus_number: int = 0) -> None:
-        """Initialize the I2C handler.
-
-        Args:
-            bus_number (int, optional):
-                The bus number to use.
-                Defaults to 0.
-        """
-        self.bus: int = smbus.SMBus(bus_number)
-
-        self.objects: dict[str, I2CObject] = {}
-
-    def add_object(self, obj: 'I2CObject') -> None:
-        """Add an object to the I2C handler.
-
-        Args:
-            obj (I2CObject):
-                The object to add.
-        """
-        self.objects[obj.name] = obj
-
-    def remove_object(self, obj: 'I2CObject' | str) -> None:
-        """Remove an object from the I2C handler.
-
-        Args:
-            obj (I2CObject | str):
-                The name of the object or object itself to remove.
-        """
-        if isinstance(obj, str):
-            del self.objects[obj]
-        else:
-            del self.objects[obj.name]
-
-    def read_objects(self) -> dict[str, dict[int, bytes]]:
-        """Read all objects if they are set to read and return the data.
-
-        Returns:
-            dict[str, dict[int, bytes]]: The data read from the objects formatted as {object_name: {register: value}}.
-        """
-        return_data = {}
-
-        for obj in self.objects:
-            return_data[obj] = self.objects[obj].read(self.bus)
-
-        return return_data
-
-
 class I2CObject:
 
     def __init__(self, address: int, name: str) -> None:
@@ -103,3 +54,52 @@ class I2CObject:
 
     def write_i2c_block_data(self, register, data):
         self.bus.write_i2c_block_data(self.address, register, data)
+
+
+class I2CHandler:
+
+    def __init__(self, bus_number: int = 0) -> None:
+        """Initialize the I2C handler.
+
+        Args:
+            bus_number (int, optional):
+                The bus number to use.
+                Defaults to 0.
+        """
+        self.bus: int = smbus.SMBus(bus_number)
+
+        self.objects: dict[str, I2CObject] = {}
+
+    def add_object(self, obj: I2CObject) -> None:
+        """Add an object to the I2C handler.
+
+        Args:
+            obj (I2CObject):
+                The object to add.
+        """
+        self.objects[obj.name] = obj
+
+    def remove_object(self, obj: I2CObject | str) -> None:
+        """Remove an object from the I2C handler.
+
+        Args:
+            obj (I2CObject | str):
+                The name of the object or object itself to remove.
+        """
+        if isinstance(obj, str):
+            del self.objects[obj]
+        else:
+            del self.objects[obj.name]
+
+    def read_objects(self) -> dict[str, dict[int, bytes]]:
+        """Read all objects if they are set to read and return the data.
+
+        Returns:
+            dict[str, dict[int, bytes]]: The data read from the objects formatted as {object_name: {register: value}}.
+        """
+        return_data = {}
+
+        for obj in self.objects:
+            return_data[obj] = self.objects[obj].read(self.bus)
+
+        return return_data
