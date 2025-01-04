@@ -29,7 +29,7 @@ class MainSystem:
         # Initialize the System Objects object.
         self._ROV = ROV()
         self._GPIO = GPIO()
-        self._I2C = I2C()
+        # TODO: self._I2C = I2C()
         self.mqtt_connection = MQTT(
             ip=self._ROV.ip,
             port=self._ROV.comms_port,
@@ -121,7 +121,8 @@ class MainSystem:
 
         # Get the data from the sensors.
         gpio_data = self._GPIO.read_devices()
-        i2c_data = self._I2C.read_objects()
+        # i2c_data = self._I2C.read_objects()
+        i2c_data = {}
 
         # Publish the data to the MQTT connection.
         self.mqtt_connection.send_data(gpio_data, i2c_data, self.status)
