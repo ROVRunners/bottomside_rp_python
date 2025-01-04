@@ -1,6 +1,6 @@
 import platform
 
-import bottomside.main_system as main_system
+import main_system as main_system
 
 if __name__ == '__main__':
     # Create an instance of the MainSystem class.
