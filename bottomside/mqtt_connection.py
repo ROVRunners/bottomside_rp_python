@@ -35,7 +35,10 @@ class MQTTConnection:
 
         # Set up a locked subscription dictionary.
         self._subscription_lock = Lock()
-        self._subscriptions: dict[str, str | float] = {}
+        self._subscriptions: dict[str, str | float | int] = {}
+        self._new_subscriptions: dict[str, str | float | int] = {}
+
+        self._sent_vals: dict[str, str | float | int] = {}
 
     def connect(self):
         self._client.connect(self._ip, self._port)
@@ -62,7 +65,19 @@ class MQTTConnection:
         with self._subscription_lock:
             self._subscriptions[sub] = value
 
-    def get_subscription_dict(self) -> dict[str, str | float]:
+    def set_new_subscription_value(self, sub: str, value: str | float) -> None:
+        """Set the new subscription dictionary values that have changed since the last call.
+
+        Args:
+            sub (str):
+                The subscription to set the value for.
+            value (str | float):
+                The value to set the subscription to.
+        """
+        with self._subscription_lock:
+            self._new_subscriptions[sub] = value
+
+    def get_subscription_dict(self) -> dict[str, str | float | int]:
         """Get the subscription dictionary values.
 
         Returns:
@@ -72,21 +87,59 @@ class MQTTConnection:
         with self._subscription_lock:
             return self._subscriptions
 
-    def send_data(self, sensor_data: dict[str, str | float], status: str | float,
-                  other: dict[str, str | float]) -> None:
+    def get_new_subscription_dict(self) -> dict[str, str | float | int]:
+        """Get any subscription dictionary values that have changed since the last call.
+
+        Returns:
+            dict[str, str | float]:
+                The subscription dictionary.
+        """
+        subs = {}
+
+        with self._subscription_lock:
+            subs |= self._new_subscriptions
+            self._subscriptions |= self._new_subscriptions
+            self._new_subscriptions.clear()
+
+        return subs
+
+    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, bytes]], status: str | float,
+                  other: dict[str, str | float] | None = None) -> None:
         """Send a packet from the Raspberry Pi with the specified sensor data and other data.
 
         Args:
-            sensor_data (dict[str, str | float]):
-                The sensor data to send to the surface.
+            gpio_data (dict[str, int]):
+                The GPIO data to send to the surface.
+            i2c_data (dict[str, dict[int, bytes]]):
+                The I2C data to send to the surface.
             status (str | float):
                 The status of the ROV, whether in string or numeric form.
-            other (dict[str, str | float]):
-                Other data to send to the surface, such as error/success codes.
+            other (dict[str, str | float] | None, optional):
+                Any other data to send to the surface.
+                Defaults to None.
         """
-        self._client.publish("ROV/sensor_data", json.dumps(sensor_data))
-        self._client.publish("ROV/status", json.dumps(status))
-        self._client.publish("ROV/other", json.dumps(other))
+        for name, value in gpio_data.items():
+            self._publish_if_changed(f"ROV/GPIO/{name}", str(value))
+
+        for name, value in i2c_data.items():
+            for sub_key, sub_value in value.items():
+                self._publish_if_changed(f"ROV/I2C/{name}/{sub_key}", sub_value)
+
+        self._publish_if_changed("ROV/status", json.dumps(status))
+        self._publish_if_changed("ROV/other", json.dumps(other))
+
+    def _publish_if_changed(self, topic: str, payload) -> None:
+        """Publish the data if it has changed from the previous value.
+
+        Args:
+            topic (str):
+                The topic to publish the data to.
+            payload:
+                The data to publish.
+        """
+        if topic not in self._sent_vals or self._sent_vals[topic] != payload:
+            self._sent_vals[topic] = payload
+            self._client.publish(topic, payload)
 
     def _on_message(self, client, userdata, message):
         print(f"Received message '{message.payload.decode()}' on topic '{message.topic}'")
@@ -100,7 +153,8 @@ class MQTTConnection:
         print(f"Connected with result code {rc}")
 
         client.subscribe("PC/commands/#")
-        client.subscribe(f"PC/thruster_pwm/#")
+        client.subscribe(f"PC/pins/#")
+        client.subscribe(f"PC/i2c/#")
 
     def _on_disconnect(self, client, userdata, rc) -> None:
         print(f"Disconnected with result code {rc}")
