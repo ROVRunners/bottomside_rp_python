@@ -159,7 +159,7 @@ class Pin:
             # self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
             print(self._gpio, self._pin_number, self._duty_cycle)
-            self._gpio.set_servo_pulsewidth(self._pin_number, int(self._duty_cycle))
+            self._gpio.set_servo_pulsewidth(int(self._pin_number), int(self._duty_cycle))
         # TODO: Implement PWMPercent
         elif self._mode == PinMode.PWMPercent.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
