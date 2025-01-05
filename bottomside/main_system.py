@@ -72,6 +72,8 @@ class MainSystem:
                 else:
                     new_pin = Pin(pin_name)
 
+                    self._GPIO.new_device(new_pin)
+
                     match key.split("/")[-1]:
                         case "id":
                             new_pin.pin_number = value
@@ -81,8 +83,6 @@ class MainSystem:
                             new_pin.duty_cycle = value
                         case "freq":
                             new_pin.frequency = value
-
-                    self._GPIO.new_device(new_pin)
 
             # # If the key is an I2C object, update the relevant I2C object.
             # elif key.startswith("PC/I2C/"):
