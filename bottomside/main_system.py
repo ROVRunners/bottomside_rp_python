@@ -80,9 +80,9 @@ class MainSystem:
                         case "mode":
                             new_pin.mode = value
                         case "val":
-                            new_pin.duty_cycle = value
+                            new_pin.duty_cycle = int(value)
                         case "freq":
-                            new_pin.frequency = value
+                            new_pin.frequency = int(value)
 
             # # If the key is an I2C object, update the relevant I2C object.
             # elif key.startswith("PC/I2C/"):

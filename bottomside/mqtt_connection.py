@@ -103,7 +103,7 @@ class MQTTConnection:
         return subs
 
     def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, bytes]], status: str | float,
-                  other: dict[str, str | float] | None = None) -> None:
+                  other: dict[str, str | float | int] | None = None) -> None:
         """Send a packet from the Raspberry Pi with the specified sensor data and other data.
 
         Args:
@@ -113,7 +113,7 @@ class MQTTConnection:
                 The I2C data to send to the surface.
             status (str | float):
                 The status of the ROV, whether in string or numeric form.
-            other (dict[str, str | float] | None, optional):
+            other (dict[str, str | float | int] | None, optional):
                 Any other data to send to the surface.
                 Defaults to None.
         """
