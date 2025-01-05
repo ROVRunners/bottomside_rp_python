@@ -217,8 +217,9 @@ class Pin:
             new_mode (PinMode):
                 The new mode of the device.
         """
-        self._mode = new_mode
-        self._refresh()
+        if new_mode != self._mode:
+            self._mode = new_mode
+            self._refresh()
 
     @property
     def duty_cycle(self) -> int:
@@ -237,8 +238,9 @@ class Pin:
             new_duty_cycle (int):
                 The new duty cycle of the device.
         """
-        self._duty_cycle = new_duty_cycle
-        self._refresh()
+        if new_duty_cycle != self._duty_cycle:
+            self._duty_cycle = new_duty_cycle
+            self._refresh()
 
     @property
     def frequency(self) -> int:
@@ -257,8 +259,9 @@ class Pin:
             new_frequency (int):
                 The new frequency of the device.
         """
-        self._frequency = new_frequency
-        self._refresh()
+        if new_frequency != self._frequency:
+            self._frequency = new_frequency
+            self._refresh()
 
     def on(self) -> None:
         """Turn the device on."""
