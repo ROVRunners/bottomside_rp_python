@@ -145,6 +145,7 @@ class Pin:
 
     def _refresh(self) -> None:
         """Refresh the pin."""
+        print(self._name, self._pin_number, self._mode, self._duty_cycle, self._frequency)
         if self._gpio is None or self._pin_number is None:
             return
 
