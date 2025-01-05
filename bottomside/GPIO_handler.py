@@ -152,21 +152,21 @@ class Pin:
 
         print(PinMode.PWMMicroseconds, self._mode)
 
-        if self._mode == PinMode.WriteDigital:
+        if self._mode == PinMode.WriteDigital.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             self._gpio.write(self._pin_number, self._duty_cycle)
-        elif self._mode == PinMode.PWMMicroseconds:
+        elif self._mode == PinMode.PWMMicroseconds.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
             self._gpio.set_servo_pulsewidth(self._pin_number, self._duty_cycle)
             print(self._pin_number, self._duty_cycle)
         # TODO: Implement PWMPercent
-        elif self._mode == PinMode.PWMPercent:
+        elif self._mode == PinMode.PWMPercent.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
-        elif self._mode == PinMode.ReadDigital:
+        elif self._mode == PinMode.ReadDigital.value:
             self._gpio.set_mode(self._pin_number, pigpio.INPUT)
-        elif self._mode == PinMode.ReadAnalog:
+        elif self._mode == PinMode.ReadAnalog.value:
             self._gpio.set_mode(self._pin_number, pigpio.INPUT)
             # gpio.set_pull_up_down(self._pin_number, pigpio.PUD_OFF)
 
