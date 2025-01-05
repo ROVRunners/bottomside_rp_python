@@ -45,6 +45,7 @@ class MainSystem:
         sub_dict_updates = self.mqtt_connection.get_new_subscription_dict()
 
         for key, value in sub_dict_updates.items():
+            print(key, value)
             if key == "PC/commands/shutdown":
                 self.shutdown()
                 break
