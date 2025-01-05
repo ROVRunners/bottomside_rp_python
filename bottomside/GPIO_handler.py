@@ -145,20 +145,24 @@ class Pin:
 
     def _refresh(self) -> None:
         """Refresh the pin."""
-        print(self._name, self._pin_number, self._mode, self._duty_cycle, self._frequency)
+        # print(self._name, self._pin_number, self._mode, self._duty_cycle, self._frequency)
         if self._gpio is None or self._pin_number is None:
             print("GPIO or pin number not set")
             return
+
+        print(PinMode.PWMMicroseconds, self._mode)
 
         if self._mode == PinMode.WriteDigital:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             self._gpio.write(self._pin_number, self._duty_cycle)
         elif self._mode == PinMode.PWMMicroseconds:
+            self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
             self._gpio.set_servo_pulsewidth(self._pin_number, self._duty_cycle)
             print(self._pin_number, self._duty_cycle)
         # TODO: Implement PWMPercent
         elif self._mode == PinMode.PWMPercent:
+            self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
         elif self._mode == PinMode.ReadDigital:
             self._gpio.set_mode(self._pin_number, pigpio.INPUT)
@@ -193,8 +197,6 @@ class Pin:
                 The new pin number.
         """
         if new_pin_number != self._pin_number:
-            # self._gpio.set_mode(self._pin_number, pigpio.INPUT)
-
             self._pin_number = new_pin_number
             self._refresh()
 
