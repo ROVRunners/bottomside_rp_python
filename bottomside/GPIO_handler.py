@@ -193,7 +193,7 @@ class Pin:
                 The new pin number.
         """
         if new_pin_number != self._pin_number:
-            self._gpio.set_mode(self._pin_number, pigpio.INPUT)
+            # self._gpio.set_mode(self._pin_number, pigpio.INPUT)
 
             self._pin_number = new_pin_number
             self._refresh()
