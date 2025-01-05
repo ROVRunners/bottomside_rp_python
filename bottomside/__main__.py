@@ -2,7 +2,7 @@ import os
 import platform
 import time
 
-os.system("sudo pigpiod")
+# os.system("sudo pigpiod")
 
 time.sleep(1)
 
