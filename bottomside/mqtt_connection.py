@@ -1,3 +1,4 @@
+import copy
 import json
 from threading import Lock
 import paho.mqtt.client as mqtt
@@ -65,13 +66,13 @@ class MQTTConnection:
         with self._subscription_lock:
             self._subscriptions[sub] = value
 
-    def set_new_subscription_value(self, sub: str, value: str | float) -> None:
+    def set_new_subscription_value(self, sub: str, value: str | float | int) -> None:
         """Set the new subscription dictionary values that have changed since the last call.
 
         Args:
             sub (str):
                 The subscription to set the value for.
-            value (str | float):
+            value (str | float | int):
                 The value to set the subscription to.
         """
         with self._subscription_lock:
@@ -81,7 +82,7 @@ class MQTTConnection:
         """Get the subscription dictionary values.
 
         Returns:
-            dict[str, str | float]:
+            dict[str, str | float | int]:
                 The subscription dictionary.
         """
         with self._subscription_lock:
@@ -91,15 +92,13 @@ class MQTTConnection:
         """Get any subscription dictionary values that have changed since the last call.
 
         Returns:
-            dict[str, str | float]:
+            dict[str, str | float | int]:
                 The subscription dictionary.
         """
-        subs = {}
-
         with self._subscription_lock:
-            subs |= self._new_subscriptions
+            subs = copy.deepcopy(self._new_subscriptions)
             self._subscriptions |= self._new_subscriptions
-            self._new_subscriptions.clear()
+            self._new_subscriptions = {}
 
         return subs
 
@@ -147,7 +146,7 @@ class MQTTConnection:
         if message.topic == "PC/commands/subscribe":
             self.subscribe(message.payload.decode())
         else:
-            self.set_subscription_value(message.topic, message.payload.decode())
+            self.set_new_subscription_value(message.topic, message.payload.decode())
 
     def _on_connect(self, client, userdata, flags, rc) -> None:
         print(f"Connected with result code {rc}")
