@@ -156,7 +156,7 @@ class Pin:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             self._gpio.write(self._pin_number, self._duty_cycle)
         elif self._mode == PinMode.PWMMicroseconds.value:
-            self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
+            # self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
             self._gpio.set_servo_pulsewidth(self._pin_number, self._duty_cycle)
             print(self._pin_number, self._duty_cycle)
