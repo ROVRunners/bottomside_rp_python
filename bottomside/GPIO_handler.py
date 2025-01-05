@@ -151,24 +151,34 @@ class Pin:
             return
 
         # print(PinMode.PWMMicroseconds, self._mode)
-
-        if self._mode == PinMode.WriteDigital.value:
-            self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
-            self._gpio.write(self._pin_number, self._duty_cycle)
-        elif self._mode == PinMode.PWMMicroseconds.value:
-            # self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
-            # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
-            print(self._gpio, self._pin_number, self._duty_cycle)
-            self._gpio.set_servo_pulsewidth(int(self._pin_number), int(self._duty_cycle))
-        # TODO: Implement PWMPercent
-        elif self._mode == PinMode.PWMPercent.value:
-            self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
-            self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
-        elif self._mode == PinMode.ReadDigital.value:
-            self._gpio.set_mode(self._pin_number, pigpio.INPUT)
-        elif self._mode == PinMode.ReadAnalog.value:
-            self._gpio.set_mode(self._pin_number, pigpio.INPUT)
-            # gpio.set_pull_up_down(self._pin_number, pigpio.PUD_OFF)
+        try:
+            if self._mode == PinMode.WriteDigital.value:
+                self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
+                self._gpio.write(self._pin_number, self._duty_cycle)
+            elif self._mode == PinMode.PWMMicroseconds.value:
+                # self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
+                # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
+                print(self._gpio, self._pin_number, self._duty_cycle)
+                self._gpio.set_servo_pulsewidth(int(self._pin_number), int(self._duty_cycle))
+            # TODO: Implement PWMPercent
+            elif self._mode == PinMode.PWMPercent.value:
+                self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
+                self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
+            elif self._mode == PinMode.ReadDigital.value:
+                self._gpio.set_mode(self._pin_number, pigpio.INPUT)
+            elif self._mode == PinMode.ReadAnalog.value:
+                self._gpio.set_mode(self._pin_number, pigpio.INPUT)
+                # gpio.set_pull_up_down(self._pin_number, pigpio.PUD_OFF)
+        except pigpio.error as e:
+            print(
+                "There was an error in setting a pin value with the following details:\n\n",
+                f"Name: {self._name}\n",
+                f"Pin Number: {self._pin_number}\n",
+                f"Mode: {self._mode}\n",
+                f"Duty Cycle: {self._duty_cycle}\n",
+                f"Frequency: {self._frequency}\n",
+                f"Error: {e}\n\n",
+                )
 
     @property
     def name(self) -> str:
