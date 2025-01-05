@@ -76,6 +76,7 @@ class MainSystem:
 
                     match key.split("/")[-1]:
                         case "id":
+                            print("id:", value)
                             new_pin.pin_number = value
                         case "mode":
                             new_pin.mode = value
