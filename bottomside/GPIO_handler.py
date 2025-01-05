@@ -150,7 +150,7 @@ class Pin:
             print("GPIO or pin number not set")
             return
 
-        print(PinMode.PWMMicroseconds, self._mode)
+        # print(PinMode.PWMMicroseconds, self._mode)
 
         if self._mode == PinMode.WriteDigital.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
@@ -158,8 +158,8 @@ class Pin:
         elif self._mode == PinMode.PWMMicroseconds.value:
             # self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
+            print(self._gpio, self._pin_number, self._duty_cycle)
             self._gpio.set_servo_pulsewidth(self._pin_number, self._duty_cycle)
-            print(self._pin_number, self._duty_cycle)
         # TODO: Implement PWMPercent
         elif self._mode == PinMode.PWMPercent.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
