@@ -1,11 +1,14 @@
 import os
 import platform
+import time
+
+os.system("sudo pigpiod")
+
+time.sleep(1)
 
 import main_system as main_system
 
 if __name__ == '__main__':
-
-    os.system("sudo pigpiod")
 
     # Create an instance of the MainSystem class.
     main_system = main_system.MainSystem(platform.system())
