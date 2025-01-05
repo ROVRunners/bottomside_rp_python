@@ -86,8 +86,8 @@ class PinMode(Enum):
 
 class Pin:
 
-    def __init__(self, name: str, pin_number: int | None = None, mode: PinMode | None = None, duty_cycle: float = 0.0,
-                 frequency: float = 50.0, gpio: pigpio.pi = None) -> None:
+    def __init__(self, name: str, pin_number: int | None = None, mode: PinMode | None = None, duty_cycle: int = 0,
+                 frequency: int = 50, gpio: pigpio.pi = None) -> None:
         """Initialize the Pin.
 
         Args:
@@ -99,12 +99,12 @@ class Pin:
             mode (PinMode, optional):
                 The mode of the device.
                 Defaults to None.
-            duty_cycle (float, optional):
+            duty_cycle (int, optional):
                 The duty cycle of the device.
-                Defaults to 0.0.
-            frequency (float, optional):
+                Defaults to 0.
+            frequency (int, optional):
                 The frequency of the device.
-                Defaults to 50.0.
+                Defaults to 50.
             gpio (pigpio.pi, optional):
                 The pigpio instance to use.
                 Defaults to None.
@@ -112,8 +112,8 @@ class Pin:
         self._name: str = name
         self._pin_number: int = pin_number
         self._mode: PinMode = mode
-        self._duty_cycle: float = duty_cycle
-        self._frequency: float = frequency
+        self._duty_cycle: int = duty_cycle
+        self._frequency: int = frequency
         self._gpio: pigpio.pi = gpio
 
     def setup(self, gpio: pigpio.pi) -> None:
@@ -159,7 +159,7 @@ class Pin:
             # self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
             print(self._gpio, self._pin_number, self._duty_cycle)
-            self._gpio.set_servo_pulsewidth(self._pin_number, self._duty_cycle)
+            self._gpio.set_servo_pulsewidth(self._pin_number, int(self._duty_cycle))
         # TODO: Implement PWMPercent
         elif self._mode == PinMode.PWMPercent.value:
             self._gpio.set_mode(self._pin_number, pigpio.OUTPUT)
@@ -221,40 +221,40 @@ class Pin:
         self._refresh()
 
     @property
-    def duty_cycle(self) -> float:
+    def duty_cycle(self) -> int:
         """Return the duty cycle of the device.
 
         Returns:
-            float: The duty cycle of the device.
+            int: The duty cycle of the device.
         """
         return self._duty_cycle
 
     @duty_cycle.setter
-    def duty_cycle(self, new_duty_cycle: float) -> None:
+    def duty_cycle(self, new_duty_cycle: int) -> None:
         """Set the duty cycle of the device.
 
         Args:
-            new_duty_cycle (float):
+            new_duty_cycle (int):
                 The new duty cycle of the device.
         """
         self._duty_cycle = new_duty_cycle
         self._refresh()
 
     @property
-    def frequency(self) -> float:
+    def frequency(self) -> int:
         """Return the frequency of the device.
 
         Returns:
-            float: The frequency of the device.
+            int: The frequency of the device.
         """
         return self._frequency
 
     @frequency.setter
-    def frequency(self, new_frequency: float) -> None:
+    def frequency(self, new_frequency: int) -> None:
         """Set the frequency of the device.
 
         Args:
-            new_frequency (float):
+            new_frequency (int):
                 The new frequency of the device.
         """
         self._frequency = new_frequency
