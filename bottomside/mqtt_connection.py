@@ -141,8 +141,6 @@ class MQTTConnection:
             self._client.publish(topic, payload)
 
     def _on_message(self, client, userdata, message):
-        print(f"Received message '{message.payload.decode()}' on topic '{message.topic}'")
-
         if message.topic == "PC/commands/subscribe":
             self.subscribe(message.payload.decode())
         else:
