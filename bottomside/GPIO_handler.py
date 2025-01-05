@@ -154,6 +154,7 @@ class Pin:
         elif self._mode == PinMode.PWMMicroseconds:
             # self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
             self._gpio.set_servo_pulsewidth(self._pin_number, self._duty_cycle)
+            print(self._pin_number, self._duty_cycle)
         # TODO: Implement PWMPercent
         elif self._mode == PinMode.PWMPercent:
             self._gpio.hardware_PWM(self._pin_number, self._frequency, self._duty_cycle * 10000)
