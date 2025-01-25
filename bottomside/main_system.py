@@ -1,7 +1,7 @@
 import time
 
 from GPIO_handler import GPIOHandler as GPIO, Pin
-from i2c import I2CHandler as I2C
+from i2c import I2CHandler as I2C, I2CObject
 from mqtt_connection import MQTTConnection as MQTT
 
 from ROV_config import ROV
@@ -84,40 +84,40 @@ class MainSystem:
                         case "freq":
                             new_pin.frequency = int(value)
 
-            # # If the key is an I2C object, update the relevant I2C object.
-            # elif key.startswith("PC/I2C/"):
-            #     obj_name = key.split("/")[-2]
-            #     # Check if the object is already in the I2C objects dictionary. If it is, update the relevant value.
-            #     if obj_name in self._I2C.objects.keys():
-            #         match key.split("/")[-1]:
-            #             case "id":
-            #                 self._I2C.objects[obj_name].object_id = value
-            #             case "addr":
-            #                 self._I2C.objects[obj_name].address = value
-            #             case "reg":
-            #                 self._I2C.objects[obj_name].register = value
-            #             case "val":
-            #                 self._I2C.objects[obj_name].value = value
-            #             case "type":
-            #                 self._I2C.objects[obj_name].object_type = value
-            #     # If the object is not in the I2C objects dictionary, create a new object and add it to the dictionary
-            #     # with the given value.
-            #     else:
-            #         new_obj = I2CObject(obj_name)
-            #
-            #         match key.split("/")[-2]:
-            #             case "id":
-            #                 new_obj.object_id = value
-            #             case "addr":
-            #                 new_obj.address = value
-            #             case "reg":
-            #                 new_obj.register = value
-            #             case "val":
-            #                 new_obj.value = value
-            #             case "type":
-            #                 new_obj.object_type = value
-            #
-            #         self._I2C.new_object(new_obj)
+            # If the key is an I2C object, update the relevant I2C object.
+            elif key.startswith("PC/I2C/"):
+                obj_name = key.split("/")[-2]
+                # Check if the object is already in the I2C objects dictionary. If it is, update the relevant value.
+                if obj_name in self._I2C.objects.keys():
+                    match key.split("/")[-1]:
+                        case "id":
+                            self._I2C.objects[obj_name].object_id = value
+                        case "addr":
+                            self._I2C.objects[obj_name].address = value
+                        case "reg":
+                            self._I2C.objects[obj_name].register = value
+                        case "val":
+                            self._I2C.objects[obj_name].value = value
+                        case "type":
+                            self._I2C.objects[obj_name].object_type = value
+                # If the object is not in the I2C objects dictionary, create a new object and add it to the dictionary
+                # with the given value.
+                else:
+                    new_obj = I2CObject(obj_name)
+            
+                    match key.split("/")[-2]:
+                        case "id":
+                            new_obj.object_id = value
+                        case "addr":
+                            new_obj.address = value
+                        case "reg":
+                            new_obj.register = value
+                        case "val":
+                            new_obj.value = value
+                        case "type":
+                            new_obj.object_type = value
+            
+                    self._I2C.new_object(new_obj)
 
         # Get the data from the sensors.
         gpio_data = self._GPIO.read_devices()
