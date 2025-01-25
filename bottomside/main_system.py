@@ -29,7 +29,7 @@ class MainSystem:
         # Initialize the System Objects object.
         self._ROV = ROV()
         self._GPIO = GPIO()
-        # TODO: self._I2C = I2C()
+        self._I2C = I2C()
         self.mqtt_connection = MQTT(
             ip=self._ROV.ip,
             port=self._ROV.comms_port,
