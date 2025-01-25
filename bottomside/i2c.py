@@ -41,6 +41,7 @@ class I2CObject:
 
         # Write and remove any one-time messages.
         for register in self.write_registers:
+            print(register, self.write_registers[register])
             bus.write_byte(int(register), int(self.write_registers[register]))
             self.write_registers.pop(register)
         
