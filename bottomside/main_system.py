@@ -120,7 +120,6 @@ class MainSystem:
         # Get the data from the sensors.
         gpio_data = self._GPIO.read_devices()
         i2c_data = self._I2C.read_objects()
-        print(i2c_data)
         # i2c_data = {}
 
         # Publish the data to the MQTT connection.

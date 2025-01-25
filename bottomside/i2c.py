@@ -26,7 +26,7 @@ class I2CObject:
         # self.register_names: dict[int, str] = {}
 
 
-    def read_and_write(self, bus: smbus.SMBus) -> dict[int, int]:
+    def read_and_write(self, bus: smbus.SMBus) -> dict[int, dict[int, int]]:
         """Automatically write to read from the object and return the read data.
 
         Args:
@@ -34,7 +34,7 @@ class I2CObject:
                 The bus to read from.
 
         Returns:
-            dict[str, int]: The data read from the object formatted as {register name: value}.
+            dict[str, dict[int, int]]: The data read from the object formatted as {register name: dict[register offset: value]}.
         """
         if self.address is None:
             return {}
@@ -60,14 +60,13 @@ class I2CObject:
             # Get the data.
             data = self.read_i2c_block_data(reg, reg_len)
 
-            # Repeatedly append all data collected from this register list into a single big conatenated
-            # binary string in the form of an int. If only a single number, this has no effect.
-            return_num = 0
+            # Put all items requested into a dictionary
+            return_nums = {}
             for i, datum in enumerate(data):
-                return_num |= datum >> (8*i)
+                return_nums[i] = datum
 
             # Add it to the list of register data.
-            return_data[register] = return_num
+            return_data[register] = return_nums
 
         return return_data
 
@@ -122,11 +121,11 @@ class I2CHandler:
         else:
             del self.objects[obj.name]
 
-    def read_objects(self) -> dict[str, dict[int, int]]:
+    def read_objects(self) -> dict[str, dict[int, dict[int, int]]]:
         """Read all objects if they are set to read and return the data.
 
         Returns:
-            dict[str, dict[int, int]]: The data read from the objects formatted as {object_name: {register: value}}.
+            dict[str, dict[int, dict[int, int]]]: The data read from the objects formatted as {object_name: {register: value}}.
         """
         return_data = {}
 

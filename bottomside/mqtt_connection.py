@@ -102,14 +102,14 @@ class MQTTConnection:
 
         return subs
 
-    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, int]], status: str | float,
+    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, dict[int, int]]], status: str | float,
                   other: dict[str, str | float | int] | None = None) -> None:
         """Send a packet from the Raspberry Pi with the specified sensor data and other data.
 
         Args:
             gpio_data (dict[str, int]):
                 The GPIO data to send to the surface.
-            i2c_data (dict[str, dict[int, int]]):
+            i2c_data (dict[str, dict[int, dict[int, int]]]):
                 The I2C data to send to the surface.
             status (str | float):
                 The status of the ROV, whether in string or numeric form.
@@ -118,11 +118,11 @@ class MQTTConnection:
                 Defaults to None.
         """
         for name, value in gpio_data.items():
-            self._publish_if_changed(f"ROV/GPIO/{name}", str(value))
+            self._publish_if_changed(f"ROV/gpio/{name}", str(value))
 
         for name, value in i2c_data.items():
             for sub_key, sub_value in value.items():
-                self._publish_if_changed(f"ROV/I2C/{name}/{sub_key}", sub_value)
+                self._publish_if_changed(f"ROV/i2c/{name}/{sub_key}", json.dumps(sub_value))
 
         self._publish_if_changed("ROV/status", json.dumps(status))
         self._publish_if_changed("ROV/other", json.dumps(other))
@@ -136,7 +136,7 @@ class MQTTConnection:
             payload:
                 The data to publish.
         """
-        if topic not in self._sent_vals or self._sent_vals[topic] != payload:
+        if topic not in self._sent_vals.keys() or self._sent_vals[topic] != payload:
             self._sent_vals[topic] = payload
             self._client.publish(topic, payload)
 
