@@ -26,7 +26,7 @@ class I2CObject:
         # self.register_names: dict[int, str] = {}
 
 
-    def read_and_write(self, bus: smbus.SMBus) -> dict[int, bytes]:
+    def read_and_write(self, bus: smbus.SMBus) -> dict[int, int]:
         """Automatically write to read from the object and return the read data.
 
         Args:
@@ -34,7 +34,7 @@ class I2CObject:
                 The bus to read from.
 
         Returns:
-            dict[str, bytes]: The data read from the object formatted as {register name: value}.
+            dict[str, int]: The data read from the object formatted as {register name: value}.
         """
         if self.address is None:
             return {}
@@ -43,19 +43,19 @@ class I2CObject:
 
         # Write and remove any one-time messages.
         for register in self.write_registers:
-            bus.write_byte(self.address, self.write_registers[register])
+            bus.write_byte(int(register), int(self.write_registers[register]))
             self.write_registers.pop(register)
         
         # Write but do not remove any reoccuring messages.
         for register in self.poll_registers:
-            bus.write_byte(self.address, self.poll_registers[register])
+            bus.write_byte(int(register), int(self.poll_registers[register]))
 
         # Read any data requested.
         for register in self.read_registers:
             
             # Shorten vars.
-            reg = self.read_registers[register][0]
-            reg_len = self.read_registers[register][1]
+            reg = int(self.read_registers[register][0])
+            reg_len = int(self.read_registers[register][1])
 
             # Get the data.
             data = self.read_i2c_block_data(reg, reg_len)
@@ -65,7 +65,7 @@ class I2CObject:
             return_num = 0
             for i, datum in enumerate(data):
                 return_num |= datum >> (8*i)
-            
+
             # Add it to the list of register data.
             return_data[register] = return_num
 

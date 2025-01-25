@@ -92,7 +92,7 @@ class MainSystem:
                 if obj_name in self._I2C.objects.keys():
                     match key.split("/")[-1]:
                         case "addr":
-                            self._I2C.objects[obj_name].address = value
+                            self._I2C.objects[obj_name].address = int(value)
                         case "send_vals":
                             self._I2C.objects[obj_name].write_registers = json.loads(value)
                         case "read_regs":
