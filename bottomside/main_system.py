@@ -106,18 +106,16 @@ class MainSystem:
                     new_obj = I2CObject(obj_name)
             
                     match key.split("/")[-1]:
-                        case "id":
-                            new_obj.object_id = value
                         case "addr":
-                            new_obj.address = value
-                        case "reg":
-                            new_obj.register = value
-                        case "val":
-                            new_obj.value = value
-                        case "type":
-                            new_obj.object_type = value
+                            new_obj.address = int(value)
+                        case "send_vals":
+                            new_obj.write_registers = json.loads(value)
+                        case "read_regs":
+                            new_obj.read_registers = json.loads(value)
+                        case "poll_vals":
+                            new_obj.poll_registers = json.loads(value)
             
-                    self._I2C.new_object(new_obj)
+                    self._I2C.add_object(new_obj)
 
         # Get the data from the sensors.
         gpio_data = self._GPIO.read_devices()
