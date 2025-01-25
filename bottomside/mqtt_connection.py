@@ -102,14 +102,14 @@ class MQTTConnection:
 
         return subs
 
-    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, bytes]], status: str | float,
+    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, int]], status: str | float,
                   other: dict[str, str | float | int] | None = None) -> None:
         """Send a packet from the Raspberry Pi with the specified sensor data and other data.
 
         Args:
             gpio_data (dict[str, int]):
                 The GPIO data to send to the surface.
-            i2c_data (dict[str, dict[int, bytes]]):
+            i2c_data (dict[str, dict[int, int]]):
                 The I2C data to send to the surface.
             status (str | float):
                 The status of the ROV, whether in string or numeric form.
@@ -149,9 +149,10 @@ class MQTTConnection:
     def _on_connect(self, client, userdata, flags, rc) -> None:
         print(f"Connected with result code {rc}")
 
-        client.subscribe("PC/commands/#")
-        client.subscribe(f"PC/pins/#")
-        client.subscribe(f"PC/i2c/#")
+        # client.subscribe("PC/commands/#")
+        # client.subscribe(f"PC/pins/#")
+        # client.subscribe(f"PC/i2c/#")
+        client.subscribe(f"PC/#")
 
     def _on_disconnect(self, client, userdata, rc) -> None:
         print(f"Disconnected with result code {rc}")

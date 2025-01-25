@@ -87,7 +87,7 @@ class MainSystem:
 
             # If the key is an I2C object, update the relevant I2C object.
             elif key.startswith("PC/i2c/"):
-                obj_name = key.split("/")[-2]
+                obj_name = key.split("/")[-1]
                 # Check if the object is already in the I2C objects dictionary. If it is, update the relevant value.
                 if obj_name in self._I2C.objects.keys():
                     match key.split("/")[-1]:
@@ -105,7 +105,7 @@ class MainSystem:
                 else:
                     new_obj = I2CObject(obj_name)
             
-                    match key.split("/")[-2]:
+                    match key.split("/")[-1]:
                         case "id":
                             new_obj.object_id = value
                         case "addr":
@@ -121,8 +121,8 @@ class MainSystem:
 
         # Get the data from the sensors.
         gpio_data = self._GPIO.read_devices()
-        # i2c_data = self._I2C.read_objects()
-        i2c_data = {}
+        i2c_data = self._I2C.read_objects()
+        # i2c_data = {}
 
         # Publish the data to the MQTT connection.
         self.mqtt_connection.send_data(gpio_data, i2c_data, self.status)

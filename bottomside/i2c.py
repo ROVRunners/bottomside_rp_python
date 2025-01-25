@@ -122,11 +122,11 @@ class I2CHandler:
         else:
             del self.objects[obj.name]
 
-    def read_objects(self) -> dict[str, dict[int, bytes]]:
+    def read_objects(self) -> dict[str, dict[int, int]]:
         """Read all objects if they are set to read and return the data.
 
         Returns:
-            dict[str, dict[int, bytes]]: The data read from the objects formatted as {object_name: {register: value}}.
+            dict[str, dict[int, int]]: The data read from the objects formatted as {object_name: {register: value}}.
         """
         return_data = {}
 
