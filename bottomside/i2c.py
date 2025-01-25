@@ -26,7 +26,7 @@ class I2CObject:
         # self.register_names: dict[int, str] = {}
 
 
-    def read(self, bus: smbus.SMBus) -> dict[int, bytes]:
+    def read_and_write(self, bus: smbus.SMBus) -> dict[int, bytes]:
         """Automatically write to read from the object and return the read data.
 
         Args:
@@ -36,6 +36,9 @@ class I2CObject:
         Returns:
             dict[str, bytes]: The data read from the object formatted as {register name: value}.
         """
+        if self.address is None:
+            return {}
+
         return_data = {}
 
         # Write and remove any one-time messages.
@@ -128,6 +131,6 @@ class I2CHandler:
         return_data = {}
 
         for obj in self.objects:
-            return_data[obj] = self.objects[obj].read(self.bus)
+            return_data[obj] = self.objects[obj].read_and_write(self.bus)
 
         return return_data
