@@ -36,15 +36,17 @@ class I2CObject:
         return_data = {}
 
         # Write and remove any one-time messages.
-        for register in self.write_registers:
-            print(register, self.write_registers[register])
-            self.write_byte(int(register), int(self.write_registers[register]))
+        if self.write_registers:
+            for register in self.write_registers:
+                print(register, self.write_registers[register])
+                self.write_byte(int(register), int(self.write_registers[register]))
 
-        self.write_registers.clear()
+            self.write_registers.clear()
         
         # Write but do not remove any reoccuring messages.
-        for register in self.poll_registers:
-            self.write_byte(int(register), int(self.poll_registers[register]))
+        if self.poll_registers:
+            for register in self.poll_registers:
+                self.write_byte(int(register), int(self.poll_registers[register]))
 
         # Read any data requested.
         for register in self.read_registers:
