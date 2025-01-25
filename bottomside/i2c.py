@@ -3,7 +3,7 @@ from smbus2 import SMBus
 
 class I2CObject:
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, bus: SMBus | None = None) -> None:
         """Initialize the I2C object.
 
         Args:
@@ -12,7 +12,7 @@ class I2CObject:
         """
         self.name: str = name
 
-        self.bus = None
+        self.bus: SMBus | None = bus
 
         self.address: int | None = None
 
@@ -24,12 +24,8 @@ class I2CObject:
         self.poll_registers: dict[int, int] = {}
 
 
-    def read_and_write(self, bus: SMBus) -> dict[int, dict[int, int]]:
+    def read_and_write(self) -> dict[int, dict[int, int]]:
         """Automatically write to read from the object and return the read data.
-
-        Args:
-            bus (SMBus):
-                The bus to read from.
 
         Returns:
             dict[str, dict[int, int]]: The data read from the object formatted as {register name: dict[register offset: value]}.
@@ -42,12 +38,12 @@ class I2CObject:
         # Write and remove any one-time messages.
         for register in self.write_registers:
             print(register, self.write_registers[register])
-            bus.write_byte(int(register), int(self.write_registers[register]))
+            self.write_byte(int(register), int(self.write_registers[register]))
             self.write_registers.pop(register)
         
         # Write but do not remove any reoccuring messages.
         for register in self.poll_registers:
-            bus.write_byte(int(register), int(self.poll_registers[register]))
+            self.write_byte(int(register), int(self.poll_registers[register]))
 
         # Read any data requested.
         for register in self.read_registers:
@@ -106,6 +102,7 @@ class I2CHandler:
             obj (I2CObject):
                 The object to add.
         """
+        obj.bus = self.bus
         self.objects[obj.name] = obj
 
     def remove_object(self, obj: I2CObject | str) -> None:
@@ -129,6 +126,6 @@ class I2CHandler:
         return_data = {}
 
         for obj in self.objects:
-            return_data[obj] = self.objects[obj].read_and_write(self.bus)
+            return_data[obj] = self.objects[obj].read_and_write()
 
         return return_data
