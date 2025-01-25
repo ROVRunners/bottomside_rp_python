@@ -58,7 +58,7 @@ class I2CObject:
 
 class I2CHandler:
 
-    def __init__(self, bus_number: int = 0) -> None:
+    def __init__(self, bus_number: int = 1) -> None:
         """Initialize the I2C handler.
 
         Args:
