@@ -39,7 +39,8 @@ class I2CObject:
         for register in self.write_registers:
             print(register, self.write_registers[register])
             self.write_byte(int(register), int(self.write_registers[register]))
-            self.write_registers.pop(register)
+
+        self.write_registers.clear()
         
         # Write but do not remove any reoccuring messages.
         for register in self.poll_registers:
