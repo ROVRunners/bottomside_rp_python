@@ -1,3 +1,4 @@
+import json
 import time
 
 from GPIO_handler import GPIOHandler as GPIO, Pin
@@ -85,21 +86,20 @@ class MainSystem:
                             new_pin.frequency = int(value)
 
             # If the key is an I2C object, update the relevant I2C object.
-            elif key.startswith("PC/I2C/"):
+            elif key.startswith("PC/i2c/"):
                 obj_name = key.split("/")[-2]
                 # Check if the object is already in the I2C objects dictionary. If it is, update the relevant value.
                 if obj_name in self._I2C.objects.keys():
                     match key.split("/")[-1]:
-                        case "id":
-                            self._I2C.objects[obj_name].object_id = value
                         case "addr":
                             self._I2C.objects[obj_name].address = value
-                        case "reg":
-                            self._I2C.objects[obj_name].register = value
-                        case "val":
-                            self._I2C.objects[obj_name].value = value
-                        case "type":
-                            self._I2C.objects[obj_name].object_type = value
+                        case "send_vals":
+                            self._I2C.objects[obj_name].write_registers = json.loads(value)
+                        case "read_regs":
+                            self._I2C.objects[obj_name].read_registers = json.loads(value)
+                        case "poll_vals":
+                            self._I2C.objects[obj_name].poll_registers = json.loads(value)
+
                 # If the object is not in the I2C objects dictionary, create a new object and add it to the dictionary
                 # with the given value.
                 else:
