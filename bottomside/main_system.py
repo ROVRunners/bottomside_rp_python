@@ -87,7 +87,7 @@ class MainSystem:
 
             # If the key is an I2C object, update the relevant I2C object.
             elif key.startswith("PC/i2c/"):
-                obj_name = key.split("/")[-1]
+                obj_name = key.split("/")[-2]
                 # Check if the object is already in the I2C objects dictionary. If it is, update the relevant value.
                 if obj_name in self._I2C.objects.keys():
                     match key.split("/")[-1]:
@@ -104,6 +104,7 @@ class MainSystem:
                 # with the given value.
                 else:
                     new_obj = I2CObject(obj_name)
+                    print(obj_name)
             
                     match key.split("/")[-1]:
                         case "addr":
