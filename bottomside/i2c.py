@@ -1,4 +1,4 @@
-import smbus
+from smbus2 import SMBus
 
 
 class I2CObject:
@@ -23,14 +23,12 @@ class I2CObject:
         # dict[Register address, byte]
         self.poll_registers: dict[int, int] = {}
 
-        # self.register_names: dict[int, str] = {}
 
-
-    def read_and_write(self, bus: smbus.SMBus) -> dict[int, dict[int, int]]:
+    def read_and_write(self, bus: SMBus) -> dict[int, dict[int, int]]:
         """Automatically write to read from the object and return the read data.
 
         Args:
-            bus (smbus.SMBus):
+            bus (SMBus):
                 The bus to read from.
 
         Returns:
@@ -96,7 +94,7 @@ class I2CHandler:
                 The bus number to use.
                 Defaults to 0.
         """
-        self.bus: int = smbus.SMBus(bus_number)
+        self.bus: int = SMBus(bus_number)
 
         self.objects: dict[str, I2CObject] = {}
 
