@@ -22,7 +22,7 @@ class MainSystem:
 
         # Variable to control whether the main loop of the ROV continues running.
         self.run = True
-        self.status = "running"
+        self.status = "booting"
 
         # Set the number of loops per second and the number of nanoseconds per loop for rate limiting.
         self._loops_per_second = 60
@@ -41,6 +41,8 @@ class MainSystem:
 
         self._MQTT.connect()
 
+        self.status = "running"
+
     def loop(self):
         start_loop: int = time.monotonic_ns()
 
@@ -57,7 +59,6 @@ class MainSystem:
                 continue
 
             match general_category:
-
                 # If the general category is "commands", process the command.
                 case "commands":
                     match specific_category:
@@ -76,15 +77,19 @@ class MainSystem:
                                 device.duty_cycle = 0
                             break
                         case _:
+                            print(f"Unknown command: {specific_category}")
                             break
+
                 # If the key is pins, update the relevant GPIO pin.
                 case "pins":
                     if not self.status == "stopped":
                         pin_name = specific_category  # id, mode, val, freq
+                        variable = key.split("/")[3]
+
                         # Check if the pin is already in the GPIO devices dictionary.
                         # If it is, update the relevant value.
                         if pin_name in self._GPIO.devices.keys():
-                            match key.split("/")[3]:
+                            match variable:
                                 case "id":
                                     self._GPIO.devices[pin_name].pin_number = value
                                 case "mode":
@@ -93,6 +98,10 @@ class MainSystem:
                                     self._GPIO.devices[pin_name].duty_cycle = value
                                 case "freq":
                                     self._GPIO.devices[pin_name].frequency = value
+                                case _:
+                                    print(f"Unknown pin variable: {variable}")
+                                    break
+
                         # If the pin is not in the GPIO devices dictionary, create a new pin and add it to the
                         # dictionary with the given value.
                         else:
@@ -101,7 +110,7 @@ class MainSystem:
                             self._GPIO.new_device(new_pin)
 
                             # Depending on what value arrived first, add that value upon creation.
-                            match key.split("/")[-1]:
+                            match variable:
                                 case "id":
                                     new_pin.pin_number = int(value)
                                 case "mode":
@@ -110,15 +119,20 @@ class MainSystem:
                                     new_pin.duty_cycle = int(value)
                                 case "freq":
                                     new_pin.frequency = int(value)
+                                case _:
+                                    print(f"Unknown pin variable: {variable}")
+                                    break
 
                 # If the key is an I2C object, update the relevant I2C object.
                 case "i2c":
                     if not self.status == "stopped":
                         obj_name = specific_category
+                        variable = key.split("/")[3]
+
                         # Check if the object is already in the I2C objects dictionary.
                         # If it is, update the relevant value.
                         if obj_name in self._I2C.objects.keys():
-                            match key.split("/")[-1]:
+                            match variable:
                                 case "addr":
                                     self._I2C.objects[obj_name].address = int(value)
                                 case "send_vals":
@@ -127,14 +141,16 @@ class MainSystem:
                                     self._I2C.objects[obj_name].read_registers = json.loads(value)
                                 case "poll_vals":
                                     self._I2C.objects[obj_name].poll_registers = json.loads(value)
+                                case _:
+                                    print(f"Unknown I2C object variable: {variable}")
+                                    break
 
                         # If the object is not in the I2C objects dictionary, create a new object and add it to the
                         # dictionary with the given value.
                         else:
                             new_obj = I2CObject(obj_name)
-                            print(obj_name)
 
-                            match key.split("/")[-1]:
+                            match variable:
                                 case "addr":
                                     new_obj.address = int(value)
                                 case "send_vals":
@@ -143,8 +159,12 @@ class MainSystem:
                                     new_obj.read_registers = json.loads(value)
                                 case "poll_vals":
                                     new_obj.poll_registers = json.loads(value)
+                                case _:
+                                    print(f"Unknown I2C object variable: {variable}")
+                                    break
 
                             self._I2C.add_object(new_obj)
+                # If the key is MAVLink-related, process the message.
                 case "mavlink":
                     if not self.status == "stopped":
                         match specific_category:
@@ -153,14 +173,19 @@ class MainSystem:
                             case "send_msg":
                                 self._MAV.send_command(*json.loads(value))
                             case _:
+                                print(f"Unknown MAVLink category: {specific_category}")
                                 break
+                case _:
+                    print(f"Unknown category: {general_category}")
+                    break
 
         # Get the data from the sensors.
-        gpio_data = self._GPIO.read_devices()
-        i2c_data = self._I2C.read_objects()
+        gpio_data: dict[str, int] = self._GPIO.read_devices()
+        i2c_data: dict[str, dict[str, dict[int, int]]] = self._I2C.read_objects()
+        mavlink_data: dict[str, dict] = self._MAV.get_data()
 
         # Publish the data to the MQTT connection.
-        self._MQTT.send_data(gpio_data, i2c_data, self.status)
+        self._MQTT.send_data(gpio_data, i2c_data, mavlink_data, self.status)
 
         # Rate limit the loop to the specified number of loops per second.
         end_loop: int = time.monotonic_ns()
@@ -173,3 +198,4 @@ class MainSystem:
         """Shut down the ROV gracefully."""
         self.run = False
         self._MQTT.disconnect()
+        self._GPIO.shutdown()

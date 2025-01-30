@@ -67,10 +67,14 @@ class GPIOHandler:
 
         return return_dict
 
-    def cleanup(self) -> None:
-        """Clean up the GPIOHandler, turning off all pins and stopping the GPIO instance."""
+    def pause(self) -> None:
+        """Pause the GPIOHandler, turning off all pins."""
         for device in self.devices.values():
             device.off()
+
+    def shutdown(self) -> None:
+        """Clean up and shut down the GPIOHandler, turning off all pins and stopping the GPIO instance."""
+        self.pause()
 
         self.GPIO.stop()
 

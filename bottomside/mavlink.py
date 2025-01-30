@@ -176,13 +176,13 @@ class Mavlink:
                      param5: float = 0, param6: float = 0, param7: float = 0) -> None:
             Send a command to the autopilot.
     """
-    def __init__(self, port: str = "COM11") -> None:
+    def __init__(self, port: str = "/dev/ttyACM0") -> None:
         """Initialize the MAVLink connection.
 
         Args:
             port (str, optional):
                 The port to connect to.
-                Defaults to "COM11".
+                Defaults to "/dev/ttyACM0".
         """
         # Establish the connection.
         self._mav = mavutil.mavlink_connection(port, baud=115200, source_system=255)
@@ -197,7 +197,7 @@ class Mavlink:
         # Start the receiving thread.
         receiving_thread.start()
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict[str, dict]:
         """Get the most recent data for each received category from the queue.
 
         Returns:
