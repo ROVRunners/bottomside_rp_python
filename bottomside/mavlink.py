@@ -185,7 +185,12 @@ class Mavlink:
                 Defaults to "/dev/ttyACM0".
         """
         # Establish the connection.
-        self._mav = mavutil.mavlink_connection(port, baud=115200, source_system=255)
+        try:
+            self._mav = mavutil.mavlink_connection(port, baud=115200, source_system=255)
+        except Exception as e:
+            self._mav = None
+            print(f"Failed to connect to MAVLink: {e}")
+            return
         self._mav.wait_heartbeat()
 
         # Initialize the data queue and receiving thread.
@@ -219,6 +224,9 @@ class Mavlink:
                 The interval at which to request the message in microseconds.
                 Defaults to 10_000. (100 hertz)
         """
+        if self._mav is None:
+            return
+
         self._mav.mav.command_long_send(
             self._mav.target_system,
             self._mav.target_component,
@@ -258,6 +266,9 @@ class Mavlink:
                 The seventh parameter.
                 Defaults to 0.
         """
+        if self._mav is None:
+            return
+
         self._mav.mav.command_long_send(
             self._mav.target_system,
             self._mav.target_component,
