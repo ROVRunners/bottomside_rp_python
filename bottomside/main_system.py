@@ -164,17 +164,19 @@ class MainSystem:
                                     break
 
                             self._I2C.add_object(new_obj)
+
                 # If the key is MAVLink-related, process the message.
                 case "mavlink":
                     if not self.status == "stopped":
                         match specific_category:
                             case "req_id":
-                                self._MAV.request_data(value)
+                                self._MAV.request_data(int(key.split("/")[3]), value)
                             case "send_msg":
                                 self._MAV.send_command(*json.loads(value))
                             case _:
                                 print(f"Unknown MAVLink category: {specific_category}")
                                 break
+
                 case _:
                     print(f"Unknown category: {general_category}")
                     break
