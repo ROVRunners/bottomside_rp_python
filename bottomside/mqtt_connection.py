@@ -129,6 +129,7 @@ class MQTTConnection:
 
         for name, value in mavlink_data.items():
             self._publish_if_changed(f"ROV/mavlink/{name}", json.dumps(value))
+            print(name, value)
 
         self._publish_if_changed("ROV/status", json.dumps(status))
         self._publish_if_changed("ROV/other", json.dumps(other))
@@ -161,7 +162,8 @@ class MQTTConnection:
         print(f"Disconnected with result code {rc}")
 
     def _on_publish(self, client, userdata, mid) -> None:
-        print(f"Published message with mid {mid}")
+        # print(f"Published message with mid {mid}")
+        pass
 
     def _on_subscribe(self, client, userdata, mid, granted_qos) -> None:
         print(f"Subscribed to topic with mid {mid} and QoS {granted_qos}")
