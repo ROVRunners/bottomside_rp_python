@@ -129,7 +129,6 @@ class MQTTConnection:
 
         for name, value in mavlink_data.items():
             self._publish_if_changed(f"ROV/mavlink/{name}", json.dumps(value))
-            print(name, value)
 
         self._publish_if_changed("ROV/status", json.dumps(status))
         self._publish_if_changed("ROV/other", json.dumps(other))
