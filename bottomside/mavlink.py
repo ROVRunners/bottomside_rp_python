@@ -233,8 +233,8 @@ class Mavlink:
             self._mav.target_component,
             mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL,
             0,  # Confirmation.
-            message_id,  # Message ID to request.
-            interval,  # Interval in microseconds.
+            int(message_id),  # Message ID to request.
+            int(interval),  # Interval in microseconds.
             0, 0, 0, 0, 0  # Unused parameters.
         )
 
