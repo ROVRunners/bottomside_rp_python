@@ -1,3 +1,4 @@
+import json
 import threading
 from enum import Enum
 from queue import Queue
@@ -186,7 +187,7 @@ class Mavlink:
         """
         self.data_queue = Queue()
         self.data_dict = {}
-        
+
         # Establish the connection.
         try:
             self._mav = mavutil.mavlink_connection(port, baud=115200, source_system=255)
@@ -209,7 +210,7 @@ class Mavlink:
             dict: The most recent data for each category.
         """
         while not self.data_queue.empty():
-            data = self.data_queue.get()
+            data = json.loads(self.data_queue.get())
             self.data_dict[data[0]] = data[1]
 
         return self.data_dict
@@ -286,4 +287,4 @@ class Mavlink:
         """
         while True:
             msg = self._mav.recv_match(blocking=True)
-            queue.put({msg.get_type(), msg.to_dict()})
+            queue.put({msg.get_type(), json.dumps(msg.to_dict())})
