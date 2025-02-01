@@ -287,4 +287,4 @@ class Mavlink:
         """
         while True:
             msg = self._mav.recv_match(blocking=True)
-            queue.put({msg.get_type(): json.dumps(msg.to_dict())})
+            queue.put(json.dumps({msg.get_type(): msg.to_dict()}))
