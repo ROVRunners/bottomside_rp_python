@@ -286,5 +286,9 @@ class Mavlink:
                 The queue to store the data in.
         """
         while True:
-            msg = self._mav.recv_match(blocking=True)
-            queue.put(json.dumps([msg.get_type(), msg.to_dict()]))
+            try:
+                msg = self._mav.recv_match(blocking=True)
+                queue.put(json.dumps([msg.get_type(), msg.to_dict()]))
+            except TypeError as e:
+                print(e)
+                print(msg)
