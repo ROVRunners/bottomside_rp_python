@@ -184,6 +184,9 @@ class Mavlink:
                 The port to connect to.
                 Defaults to "/dev/ttyACM0".
         """
+        self.data_queue = Queue()
+        self.data_dict = {}
+        
         # Establish the connection.
         try:
             self._mav = mavutil.mavlink_connection(port, baud=115200, source_system=255)
@@ -194,10 +197,7 @@ class Mavlink:
         self._mav.wait_heartbeat()
 
         # Initialize the data queue and receiving thread.
-        self.data_queue = Queue()
         receiving_thread = threading.Thread(target=self._receive_data, args=[self.data_queue], daemon=True)
-
-        self.data_dict = {}
 
         # Start the receiving thread.
         receiving_thread.start()
