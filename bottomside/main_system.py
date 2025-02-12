@@ -5,6 +5,7 @@ from GPIO_handler import GPIOHandler as GPIO, Pin
 from i2c import I2CHandler as I2C, I2CObject
 from mqtt_connection import MQTTConnection as MQTT
 from mavlink import Mavlink as MAV
+from custom_sensors.custom_sensor_handler import CustomSensorHandler as CSH
 
 from ROV_config import ROV
 
@@ -38,6 +39,7 @@ class MainSystem:
             port=self._ROV.comms_port,
             client_id=self._ROV.rov_name
         )
+        self._CSH = CSH()
 
         self._MQTT.connect()
 
@@ -185,9 +187,10 @@ class MainSystem:
         gpio_data: dict[str, int] = self._GPIO.read_devices()
         i2c_data: dict[str, dict[str, dict[int, int]]] = self._I2C.read_objects()
         mavlink_data: dict[str, dict] = self._MAV.get_data()
+        custom_sensor_data: dict[str, dict[str, int]] = self._CSH.get_data()
 
         # Publish the data to the MQTT connection.
-        self._MQTT.send_data(gpio_data, i2c_data, mavlink_data, self.status)
+        self._MQTT.send_data(gpio_data, i2c_data, mavlink_data, custom_sensor_data, self.status)
 
         # Rate limit the loop to the specified number of loops per second.
         end_loop: int = time.monotonic_ns()

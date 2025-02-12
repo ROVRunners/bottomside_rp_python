@@ -103,7 +103,7 @@ class MQTTConnection:
         return subs
 
     def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[str, dict[int, int]]],
-                  mavlink_data: dict[str, dict], status: str | float,
+                  mavlink_data: dict[str, dict], custom_sensor_data: dict[str, dict[str, float]], status: str | float,
                   other: dict[str, str | float | int] | None = None) -> None:
         """Send a packet from the Raspberry Pi with the specified sensor data and other data.
 
@@ -114,6 +114,8 @@ class MQTTConnection:
                 The I2C data to send to the surface.
             mavlink_data (dict[str, dict]):
                 The MAVLink data to send to the surface.
+            custom_sensor_data (dict[str, dict[str, float]]):
+                The data from custom sensors to send to the surface.
             status (str | float):
                 The status of the ROV, whether in string or numeric form.
             other (dict[str, str | float | int] | None, optional):
@@ -129,6 +131,10 @@ class MQTTConnection:
 
         for name, value in mavlink_data.items():
             self._publish_if_changed(f"ROV/mavlink/{name}", json.dumps(value))
+
+        for name, value in custom_sensor_data.items():
+            for sub_key, sub_value in value.items():
+                self._publish_if_changed(f"ROV/custom/{name}/{sub_key}", str(sub_value))
 
         self._publish_if_changed("ROV/status", json.dumps(status))
         self._publish_if_changed("ROV/other", json.dumps(other))
