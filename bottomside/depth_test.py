@@ -15,7 +15,7 @@ while True:
             sensor.pressure(),  # Default is mbar (no arguments)
             sensor.pressure(ms5837.UNITS_psi),  # Request psi
             sensor.temperature(),  # Default is degrees C (no arguments)
-            sensor.temperature(ms5837.UNITS_Farenheit),  # Request Farenheit
+            sensor.temperature(ms5837.UNITS_Farenheit),  # Request Fahrenheit
             sensor.depth(),  # Default is meters (no arguments)
             sensor.altitude()  # Default is meters (no arguments)
               ))
