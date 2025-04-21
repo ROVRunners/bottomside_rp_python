@@ -12,6 +12,8 @@ class DepthSensor(GenericSensor):
         # We must initialize the sensor before reading it
         if not self.sensor.init():
             print("Sensor could not be initialized")
+        else:
+            print("Sensor initialized successfully")
 
     def get_data(self) -> dict[str, float]:
         """Get the depth, pressure, and temperature from the sensor.
