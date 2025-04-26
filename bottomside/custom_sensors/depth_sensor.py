@@ -26,7 +26,7 @@ class DepthSensor(GenericSensor):
             if self.sensor.read():
                 return {
                     "depth": self.sensor.depth(),
-                    "pressure_mbar": self.sensor.pressure(),  # Default is mbar (no arguments)
+                    "pressure_atm": self.sensor.pressure(ms5837.UNITS_atm),  # Default is mbar (no arguments)
                     "temperature_C": self.sensor.temperature(),  # Default is degrees C (no arguments)
                 }
             else:
