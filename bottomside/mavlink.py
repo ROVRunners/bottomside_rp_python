@@ -6,7 +6,7 @@ from queue import Queue
 from pymavlink import mavutil
 
 
-class MessageTypes (Enum):
+class MessageTypes(Enum):
     HEARTBEAT = 0
     SYS_STATUS = 1
     SYSTEM_TIME = 2
@@ -130,8 +130,8 @@ class MessageTypes (Enum):
     GPS_RTCM_DATA = 233
     HIGH_LATENCY = 234
     HIGH_LATENCY2 = 235
-    VIBRATION = 241
-    HOME_POSITION = 242
+    MAV_CMD_PREFLIGHT_CALIBRATION = 241
+    MAV_CMD_PREFLIGHT_SET_SENSOR_OFFSETS = 242
     SET_HOME_POSITION = 243
     MESSAGE_INTERVAL = 244
     EXTENDED_SYS_STATE = 245
