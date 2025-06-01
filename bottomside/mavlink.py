@@ -269,13 +269,28 @@ class Mavlink:
         """
         if self._mav is None:
             return
-
         self._mav.mav.command_long_send(
             self._mav.target_system,
             self._mav.target_component,
             command,
             0,  # Confirmation.
             param1, param2, param3, param4, param5, param6, param7
+        )
+
+    def set_param(self, param_id: bytes, param_value: float, param_type: int) -> None:
+        """Set a parameter on the autopilot.
+        param_id                  : Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string (type:char)
+        param_value               : Onboard parameter value (type:float)
+        param_type                : Onboard parameter type. (type:uint8_t, values:MAV_PARAM_TYPE)
+        """
+        if self._mav is None:
+            return
+        self._mav.mav.param_set_send(
+            self._mav.target_system,
+            self._mav.target_component,
+            param_id,
+            param_value,
+            param_type
         )
 
     def _receive_data(self, queue: Queue) -> None:
