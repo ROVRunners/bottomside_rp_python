@@ -279,9 +279,16 @@ class Mavlink:
 
     def set_param(self, param_id: bytes, param_value: float, param_type: int) -> None:
         """Set a parameter on the autopilot.
-        param_id                  : Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string (type:char)
-        param_value               : Onboard parameter value (type:float)
-        param_type                : Onboard parameter type. (type:uint8_t, values:MAV_PARAM_TYPE)
+
+        Args:
+            param_id (bytes):
+                Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT
+                null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes
+                storage if the ID is stored as string (type:char)
+            param_value (float):
+                Onboard parameter value.
+            param_type (int):
+                Onboard parameter type. (type:uint8_t, values:MAV_PARAM_TYPE)
         """
         if self._mav is None:
             return
