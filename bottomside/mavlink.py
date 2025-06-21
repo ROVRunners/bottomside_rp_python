@@ -190,7 +190,7 @@ class Mavlink:
 
         # Establish the connection.
         try:
-            self._mav = mavutil.mavlink_connection(port, baud=115200, source_system=255)
+            self._mav: mavutil.mavserial = mavutil.mavlink_connection(port, baud=115200, source_system=255)
         except Exception as e:
             self._mav = None
             print(f"Failed to connect to MAVLink: {e}")
@@ -275,7 +275,7 @@ class Mavlink:
             self._mav.target_component,
             command,
             0,  # Confirmation.
-            param1, param2, param3, param4, param5, param6, param7
+            float(param1), float(param2), float(param3), float(param4), float(param5), float(param6), float(param7)
         )
 
     def _receive_data(self, queue: Queue) -> None:
@@ -286,6 +286,7 @@ class Mavlink:
                 The queue to store the data in.
         """
         while True:
+            msg = None
             try:
                 msg = self._mav.recv_match(blocking=True)
                 queue.put(json.dumps([msg.get_type(), msg.to_dict()]))

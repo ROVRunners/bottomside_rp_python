@@ -170,11 +170,12 @@ class MainSystem:
                 # If the key is MAVLink-related, process the message.
                 case "mavlink":
                     if not self.status == "stopped":
+                        variable = key.split("/")[3]
                         match specific_category:
                             case "req_id":
-                                self._MAV.request_data(int(key.split("/")[3]), value)
+                                self._MAV.request_data(int(variable), value)
                             case "send_msg":
-                                self._MAV.send_command(*json.loads(value))
+                                self._MAV.send_command(int(variable), *json.loads(value)) 
                             case _:
                                 print(f"Unknown MAVLink category: {specific_category}")
                                 break
