@@ -176,6 +176,10 @@ class MainSystem:
                                 self._MAV.request_data(int(variable), value)
                             case "send_msg":
                                 self._MAV.send_command(int(variable), *json.loads(value)) 
+                                self._MAV.send_command(*json.loads(value))
+                            case "set_param":
+                                param_name, param_type = key.split("/")[3].split("-")
+                                self._MAV.set_param(param_name, float(value), int(param_type))
                             case _:
                                 print(f"Unknown MAVLink category: {specific_category}")
                                 break

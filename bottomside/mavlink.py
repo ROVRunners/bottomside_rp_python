@@ -6,7 +6,7 @@ from queue import Queue
 from pymavlink import mavutil
 
 
-class MessageTypes (Enum):
+class MessageTypes(Enum):
     HEARTBEAT = 0
     SYS_STATUS = 1
     SYSTEM_TIME = 2
@@ -130,8 +130,8 @@ class MessageTypes (Enum):
     GPS_RTCM_DATA = 233
     HIGH_LATENCY = 234
     HIGH_LATENCY2 = 235
-    VIBRATION = 241
-    HOME_POSITION = 242
+    MAV_CMD_PREFLIGHT_CALIBRATION = 241
+    MAV_CMD_PREFLIGHT_SET_SENSOR_OFFSETS = 242
     SET_HOME_POSITION = 243
     MESSAGE_INTERVAL = 244
     EXTENDED_SYS_STATE = 245
@@ -269,13 +269,35 @@ class Mavlink:
         """
         if self._mav is None:
             return
-
         self._mav.mav.command_long_send(
             self._mav.target_system,
             self._mav.target_component,
             command,
             0,  # Confirmation.
             float(param1), float(param2), float(param3), float(param4), float(param5), float(param6), float(param7)
+        )
+
+    def set_param(self, param_id: bytes, param_value: float, param_type: int) -> None:
+        """Set a parameter on the autopilot.
+
+        Args:
+            param_id (bytes):
+                Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT
+                null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes
+                storage if the ID is stored as string (type:char)
+            param_value (float):
+                Onboard parameter value.
+            param_type (int):
+                Onboard parameter type. (type:uint8_t, values:MAV_PARAM_TYPE)
+        """
+        if self._mav is None:
+            return
+        self._mav.mav.param_set_send(
+            self._mav.target_system,
+            self._mav.target_component,
+            param_id,
+            param_value,
+            param_type
         )
 
     def _receive_data(self, queue: Queue) -> None:
