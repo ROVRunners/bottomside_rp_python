@@ -102,15 +102,20 @@ class MQTTConnection:
 
         return subs
 
-    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[int, dict[int, int]]], status: str | float,
+    def send_data(self, gpio_data: dict[str, int], i2c_data: dict[str, dict[str, dict[int, int]]],
+                  mavlink_data: dict[str, dict], custom_sensor_data: dict[str, dict[str, float]], status: str | float,
                   other: dict[str, str | float | int] | None = None) -> None:
         """Send a packet from the Raspberry Pi with the specified sensor data and other data.
 
         Args:
             gpio_data (dict[str, int]):
                 The GPIO data to send to the surface.
-            i2c_data (dict[str, dict[int, dict[int, int]]]):
+            i2c_data (dict[str, dict[str, dict[int, int]]]):
                 The I2C data to send to the surface.
+            mavlink_data (dict[str, dict]):
+                The MAVLink data to send to the surface.
+            custom_sensor_data (dict[str, dict[str, float]]):
+                The data from custom sensors to send to the surface.
             status (str | float):
                 The status of the ROV, whether in string or numeric form.
             other (dict[str, str | float | int] | None, optional):
@@ -123,6 +128,13 @@ class MQTTConnection:
         for name, value in i2c_data.items():
             for sub_key, sub_value in value.items():
                 self._publish_if_changed(f"ROV/i2c/{name}/{sub_key}", json.dumps(sub_value))
+
+        for name, value in mavlink_data.items():
+            self._publish_if_changed(f"ROV/mavlink/{name}", json.dumps(value))
+
+        for name, value in custom_sensor_data.items():
+            for sub_key, sub_value in value.items():
+                self._publish_if_changed(f"ROV/custom/{name}/{sub_key}", str(sub_value))
 
         self._publish_if_changed("ROV/status", json.dumps(status))
         self._publish_if_changed("ROV/other", json.dumps(other))
@@ -149,16 +161,14 @@ class MQTTConnection:
     def _on_connect(self, client, userdata, flags, rc) -> None:
         print(f"Connected with result code {rc}")
 
-        # client.subscribe("PC/commands/#")
-        # client.subscribe(f"PC/pins/#")
-        # client.subscribe(f"PC/i2c/#")
         client.subscribe(f"PC/#")
 
     def _on_disconnect(self, client, userdata, rc) -> None:
         print(f"Disconnected with result code {rc}")
 
     def _on_publish(self, client, userdata, mid) -> None:
-        print(f"Published message with mid {mid}")
+        # print(f"Published message with mid {mid}")
+        pass
 
     def _on_subscribe(self, client, userdata, mid, granted_qos) -> None:
         print(f"Subscribed to topic with mid {mid} and QoS {granted_qos}")
