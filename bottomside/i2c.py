@@ -42,7 +42,7 @@ class I2CObject:
                 self.write_byte(int(register), int(self.write_registers[register]))
 
             self.write_registers.clear()
-        
+
         # Write but do not remove any reoccurring messages.
         if self.poll_registers:
             for register in self.poll_registers:
@@ -50,7 +50,7 @@ class I2CObject:
 
         # Read any data requested.
         for register in self.read_registers.keys():
-            
+
             # Shorten vars.
             reg = int(self.read_registers[register][0])
             reg_len = int(self.read_registers[register][1])
@@ -77,7 +77,10 @@ class I2CObject:
             value (int):
                 The value to write.
         """
-        self.bus.write_byte_data(self.address, register, value)
+        try:
+            self.bus.write_byte_data(self.address, register, value)
+        except Exception as e:
+            print("Error! Tried to write a byte to an I2C bus but something happened! Exception:", e)
 
     def read_byte(self, register: int) -> int:
         """Read a byte from the object.
@@ -89,7 +92,11 @@ class I2CObject:
         Returns:
             int: The value read.
         """
-        return self.bus.read_byte_data(self.address, register)
+        try:
+            return self.bus.read_byte_data(self.address, register)
+        except Exception as e:
+            print("Error! Tried to read a byte from an I2C bus but something happened! Exception:", e)
+            return 0
 
     def read_word(self, register: int) -> int:
         """Read a word from the object.
@@ -101,7 +108,11 @@ class I2CObject:
         Returns:
             int: The value read.
         """
-        return self.bus.read_word_data(self.address, register)
+        try:
+            return self.bus.read_word_data(self.address, register)
+        except Exception as e:
+            print("Error! Tried to read word data from an I2C bus but something happened! Exception:", e)
+            return 0
 
     def read_i2c_block_data(self, register: int, length: int) -> list[int]:
         """Read a block of data from the object.
@@ -115,7 +126,11 @@ class I2CObject:
         Returns:
             list[int]: The data read.
         """
-        return self.bus.read_i2c_block_data(self.address, register, length)
+        try:
+            return self.bus.read_i2c_block_data(self.address, register, length)
+        except Exception as e:
+            print("Error! Tried to read block data from an I2C bus but something happened! Exception:", e)
+            return []
 
     def write_i2c_block_data(self, register: int, data: list[int]) -> None:
         """Write a block of data to the object.
@@ -126,7 +141,10 @@ class I2CObject:
             data (list[int]):
                 The data to write.
         """
-        self.bus.write_i2c_block_data(self.address, register, data)
+        try:
+            self.bus.write_i2c_block_data(self.address, register, data)
+        except Exception as e:
+            print("Error! Tried to write block data to an I2C bus but something happened! Exception:", e)
 
 
 class I2CHandler:
@@ -139,7 +157,10 @@ class I2CHandler:
                 The bus number to use.
                 Defaults to 0.
         """
-        self.bus: SMBus = SMBus(bus_number)
+        try:
+            self.bus: SMBus = SMBus(bus_number)
+        except Exception as e:
+            print("Error! Tried to open an I2C bus but something happened! Exception:", e)
 
         self.objects: dict[str, I2CObject] = {}
 

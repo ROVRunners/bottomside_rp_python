@@ -7,13 +7,16 @@ class DepthSensor(GenericSensor):
         """Initialize the DepthSensor object."""
         super().__init__(name="depth_sensor")
 
-        self.sensor = ms5837.MS5837_02BA()  # Default I2C bus is 1 (Raspberry Pi 3)
+        self.sensor = ms5837.MS5837_02BA(bus=1)  # Default I2C bus is 1 (Raspberry Pi 3)
 
         # We must initialize the sensor before reading it
-        if not self.sensor.init():
-            print("Sensor could not be initialized")
-        else:
-            print(f"Sensor {self.sensor} initialized successfully")
+        try:
+            if not self.sensor.init():
+                print("Sensor could not be initialized")
+            else:
+                print(f"Sensor {self.sensor} initialized successfully")
+        except TimeoutError as e:
+            print("Connection to", self.name, "failed: Timed out. May not be connected. Error:", e)
 
     def get_data(self) -> dict[str, float]:
         """Get the depth, pressure, and temperature from the sensor.
