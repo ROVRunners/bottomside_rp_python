@@ -17,6 +17,8 @@ class DepthSensor(GenericSensor):
                 print(f"Sensor {self.sensor} initialized successfully")
         except TimeoutError as e:
             print("Connection to", self.name, "failed: Timed out. May not be connected. Error:", e)
+        except OSError as e:
+            print("Connection error to", self.name, ". Unspecified OS Error. May not be connected. Error:", e)
 
     def get_data(self) -> dict[str, float]:
         """Get the depth, pressure, and temperature from the sensor.
