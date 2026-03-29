@@ -8,7 +8,7 @@ pin: int = int(input("Gimme pin number: "))
 new_pin: int = pin
 
 gpio.set_mode(pin, pigpio.OUTPUT)
-gpio.write(pin)
+gpio.write(pin, 1)
 
 while True:
     new_pin = int(input("Gimme pin number: "))
